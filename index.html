@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NNBC Snack Bar</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -569,6 +570,118 @@
       #cart-drawer { width: 100vw; }
       .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     }
+
+    /* ── QR Code button ── */
+    #qr-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background 0.15s;
+    }
+    #qr-btn:hover { background: rgba(255,255,255,0.28); }
+
+    /* ── QR Code Modal ── */
+    #qr-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    #qr-modal.open { display: flex; }
+
+    .qr-box {
+      background: #fff;
+      border-radius: 16px;
+      width: 92%;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+
+    .qr-box .modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #close-qr {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+    #close-qr:hover { color: var(--accent); }
+
+    .qr-body {
+      padding: 1.5rem 1.25rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #qr-canvas-wrap {
+      background: #fff;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      display: inline-flex;
+    }
+
+    .qr-url {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      word-break: break-all;
+      text-align: center;
+      max-width: 280px;
+    }
+
+    #print-qr-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.12s;
+    }
+    #print-qr-btn:hover { filter: brightness(1.12); }
+
+    /* ── Print styles ── */
+    @media print {
+      body > *:not(#print-area) { display: none !important; }
+      #print-area {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        gap: 1.2rem;
+        padding: 2rem;
+      }
+      #print-area h1 { font-size: 2rem; color: #1a3a5c; }
+      #print-area p  { font-size: 1rem; color: #444; }
+    }
   </style>
 </head>
 <body>
@@ -579,10 +692,15 @@
     <span class="logo-icon">🛒</span>
     NNBC Snack Bar
   </div>
-  <button id="cart-btn" aria-label="Open cart">
-    🛒 Cart
-    <span id="cart-badge"></span>
-  </button>
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    <button id="qr-btn" aria-label="Show QR code">
+      📷 QR Code
+    </button>
+    <button id="cart-btn" aria-label="Open cart">
+      🛒 Cart
+      <span id="cart-badge"></span>
+    </button>
+  </div>
 </header>
 
 <!-- ══════════════════════ MAIN ══════════════════════ -->
@@ -654,6 +772,31 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- ══════════════════════ QR CODE MODAL ══════════════════════ -->
+<div id="qr-modal" role="dialog" aria-modal="true" aria-label="QR Code">
+  <div class="qr-box">
+    <div class="modal-header">
+      <span>📷 Scan to Open Snack Bar</span>
+      <button id="close-qr" aria-label="Close">✕</button>
+    </div>
+    <div class="qr-body">
+      <div id="qr-canvas-wrap">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <p class="qr-url" id="qr-url-text"></p>
+      <button id="print-qr-btn">🖨️ Print QR Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden print area (only visible when printing) -->
+<div id="print-area" style="display:none;">
+  <h1>🛒 NNBC Snack Bar</h1>
+  <canvas id="print-qr-canvas"></canvas>
+  <p>Scan to browse the menu &amp; pay with Venmo</p>
+  <p id="print-url-text" style="font-size:0.85rem;color:#666;"></p>
 </div>
 
 <!-- ══════════════════════ TOAST ══════════════════════ -->
@@ -760,9 +903,9 @@
       card.querySelectorAll(".qty-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           const action = btn.dataset.action;
-          const cur = parseInt($("qty-" + p.id).textContent, 10);
+          const cur = parseInt(getById("qty-" + p.id).textContent, 10);
           const next = action === "inc" ? cur + 1 : Math.max(0, cur - 1);
-          $("qty-" + p.id).textContent = next;
+          getById("qty-" + p.id).textContent = next;
           const addBtn = card.querySelector(".add-btn");
           addBtn.disabled = next === 0;
           addBtn.textContent = next === 0 ? "Select quantity" : `Add ${next} to cart`;
@@ -771,10 +914,10 @@
 
       // Add to cart
       card.querySelector(".add-btn").addEventListener("click", () => {
-        const qty = parseInt($("qty-" + p.id).textContent, 10);
+        const qty = parseInt(getById("qty-" + p.id).textContent, 10);
         if (qty > 0) {
           cart[p.id] = (cart[p.id] || 0) + qty;
-          $("qty-" + p.id).textContent = 0;
+          getById("qty-" + p.id).textContent = 0;
           card.querySelector(".add-btn").disabled = true;
           card.querySelector(".add-btn").textContent = "Select quantity";
           updateCartUI();
@@ -962,6 +1105,52 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
+
+  // ─────────────────────────────────────────────────────
+  //  QR CODE
+  // ─────────────────────────────────────────────────────
+  function renderQR(canvasId) {
+    const url = window.location.href;
+    QRCode.toCanvas(document.getElementById(canvasId), url, {
+      width: 240,
+      margin: 1,
+      color: { dark: "#1a3a5c", light: "#ffffff" },
+    }, err => { if (err) console.error("QR generation failed:", err); });
+    return url;
+  }
+
+  function openQRModal() {
+    const url = renderQR("qr-canvas");
+    getById("qr-url-text").textContent = url;
+    getById("qr-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeQRModal() {
+    getById("qr-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  getById("qr-btn").addEventListener("click", openQRModal);
+  getById("close-qr").addEventListener("click", closeQRModal);
+  getById("qr-modal").addEventListener("click", e => { if (e.target === getById("qr-modal")) closeQRModal(); });
+
+  getById("print-qr-btn").addEventListener("click", () => {
+    const url = window.location.href;
+    // Render a larger version into the print canvas
+    QRCode.toCanvas(document.getElementById("print-qr-canvas"), url, {
+      width: 320,
+      margin: 2,
+      color: { dark: "#1a3a5c", light: "#ffffff" },
+    }, err => {
+      if (err) { console.error("QR print generation failed:", err); return; }
+      getById("print-url-text").textContent = url;
+      getById("print-area").style.display = "flex";
+      window.print();
+      // Hide print area again after printing dialog closes
+      setTimeout(() => { getById("print-area").style.display = "none"; }, 500);
+    });
+  });
 
   // ─────────────────────────────────────────────────────
   //  INIT
