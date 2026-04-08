@@ -1,89 +1,90 @@
 # NNBC Snack Bar
 
-A simple web interface for the NNBC Snack Bar. Users browse the menu, add items to their cart, and check out via Venmo — with the correct Venmo account pre-filled automatically.
+A web app for the NNBC Snack Bar. Customers browse the menu, add items to their cart, and check out via Venmo. Shop owners manage inventory, add/edit/delete items, and upload photos — all from the browser, no code needed.
 
 ## 🌐 Live Site & Hosting on GitHub
 
-The site is deployed automatically to **GitHub Pages** whenever changes are pushed to the `main` branch.
+The site deploys automatically to **GitHub Pages** whenever changes are pushed to the `main` branch.
 
 ### Getting a clean `NNBCBoosterclub.github.io` URL
 
-By default the site lives at a URL like `jaugustineflory.github.io/NNBC-Shop/`. To get the clean **`NNBCBoosterclub.github.io`** address (no sub-path), follow these steps:
-
-1. **Create a free GitHub organization** named exactly `NNBCBoosterclub`:
-   - Go to [github.com/organizations/new](https://github.com/organizations/new) and choose the free plan.
-   - Set the organization name to `NNBCBoosterclub`.
+1. **Create a free GitHub organization** named exactly `NNBCBoosterclub` at [github.com/organizations/new](https://github.com/organizations/new).
 
 2. **Transfer this repository** to that organization:
-   - Go to this repo → **Settings** → scroll to the bottom → **Transfer ownership** → enter `NNBCBoosterclub`.
+   Repo → **Settings** → scroll to bottom → **Transfer ownership** → `NNBCBoosterclub`.
 
 3. **Rename the repository** to `NNBCBoosterclub.github.io`:
-   - Inside the transferred repo → **Settings** → **General** → change the name to `NNBCBoosterclub.github.io`.
+   Repo → **Settings** → **General** → change the name.
 
 4. **Enable GitHub Pages** (one-time):
-   - Go to **Settings → Pages** → under **Source** select **GitHub Actions** → Save.
+   **Settings → Pages** → **Source** → **GitHub Actions** → Save.
 
-5. Push any change to `main` (or re-run the workflow manually) and the site will be live at:
-   **https://NNBCBoosterclub.github.io/**
+5. Push any change to `main` and the site will be live at **https://NNBCBoosterclub.github.io/**
 
-> **Already have the right org & repo name?** You only need step 4 above — the workflow (`.github/workflows/deploy.yml`) handles everything else automatically.
+> **Already set up?** You only need step 4. The workflow (`.github/workflows/deploy.yml`) handles the rest.
 
 ---
 
-## 🔐 Admin Login & Item Management
+## 🔐 Admin Panel (`admin.html`)
 
-Shop owners and maintainers can log in to manage the menu directly from the browser — no code changes needed.
+The admin panel is a **separate page** at `/admin.html` (link is in the store header: ⚙️ Admin).
 
-### How to log in
+### First-time setup
 
-1. Click the **🔐 Login** button in the top-right corner of the site.
-2. Enter the admin password (default: **`NNBC2024`**).
-3. The button changes to **⚙️ Admin** and the Admin Panel slides open.
+When you open `admin.html` for the first time you'll be prompted to **create a PIN** (minimum 4 characters). The PIN is hashed with SHA-256 before being stored in the browser — it is never stored in plain text.
 
 ### What admins can do
 
 | Action | How |
 |---|---|
-| **Add a new item** | Fill in the "Add New Item" form and click **💾 Save Item** |
-| **Upload a photo** | Click the photo area in the form to pick an image file (max 5 MB) |
-| **Edit an item** | Click **✏️ Edit** next to any item in the "Current Items" list |
-| **Delete an item** | Click **🗑️** next to any item |
-| **Reset to defaults** | Click **↺ Reset to Defaults** in the Admin Panel header |
-| **Log out** | Click **🔓 Logout** |
+| **Add a new item** | Fill in the form at the top and click **Add Item** |
+| **Upload a product photo** | Use the photo field in the form (max 2 MB — resized automatically) |
+| **Edit an item** | Click **✏️ Edit** next to any item |
+| **Delete an item** | Click **🗑 Delete** next to any item |
+| **Set starting stock** | Enter a number in the "Starting Stock" field, or check **Unlimited** |
+| **Restock an item** | Click **+ Restock** next to the item, enter a quantity, press ✓ |
+| **Change your PIN** | Use the Settings section at the bottom |
+| **Reset menu to defaults** | Use the Danger Zone at the bottom |
 
-> **Tip:** Item changes are saved in the browser's local storage, so they persist across page refreshes on the same device. Use "Reset to Defaults" to go back to the built-in menu.
+> **Tip:** Changes are saved in the browser's **local storage** — they persist across page refreshes on the same device. If you manage the snack bar from a dedicated tablet or laptop, changes will always be there.
 
-### Changing the admin password
+---
 
-Open `index.html` and find this line near the top of the `<script>` block:
+## 📦 Inventory Tracking
 
-```js
-const ADMIN_PASSWORD = "NNBC2024";
-```
+Each item has a **stock count** that you control:
 
-Replace `"NNBC2024"` with your own password and push to `main`.
+| Stock value | Meaning |
+|---|---|
+| **Unlimited (∞)** | Not tracked — customers always see the item as available |
+| **N > 0** | N units remaining; customers can add up to N to their cart |
+| **0** | **Out of Stock** — card is greyed out, customers cannot add to cart |
 
-> **Important:** Change the default password before going live. Because this is a static site, the password is visible in the page source on GitHub — it provides a convenient access barrier for the Admin UI, not cryptographic security.
+### How stock changes
+
+- **Admin sets stock** when adding or editing an item.
+- **Admin uses "+ Restock"** to add quantity (e.g., after resupplying).
+- **Stock decrements automatically** when a customer opens Venmo to pay (i.e., when they confirm their order). Items with `≤ 5` units show a yellow "Only N left!" badge on the customer menu.
+
+> **Note:** Since this is a static site with no backend, stock is stored in localStorage on the device where orders are processed. It works best when the customer-facing display and the admin view run on the same device (e.g., a shared tablet at the counter).
 
 ---
 
 ## 📷 QR Code
 
-The site has a built-in **QR Code** button in the top-right corner. Click it to:
-- See a scannable QR code that links directly to the site.
-- Print a clean QR code page to post at the snack bar so customers can scan and shop from their phones.
-
-The QR code is generated from the live URL, so it always stays up to date.
+Click the **📷 QR Code** button in the store header to:
+- See a scannable QR code that links directly to the store.
+- Print a clean QR code page to post at the snack bar.
 
 ---
 
-## ✏️ Updating Venmo Info (code)
+## ✏️ Updating Venmo Info
 
-The Venmo account details live at the top of `index.html` inside the `<script>` block:
+The Venmo account details are at the top of `index.html`:
 
 ```js
-const VENMO_USERNAME = "NNBC-Snackbar";  // Venmo @handle (no @)
-const VENMO_DISPLAY  = "NNBC Snack Bar"; // Display name shown to users
+const VENMO_USERNAME = "NNBoosterClub";              // Venmo @handle (no @)
+const VENMO_DISPLAY  = "Northern Neck Booster Club"; // Display name shown to users
 ```
 
-Edit those values and push to `main` — the site redeploys automatically.
+Edit and push to `main` — the site redeploys automatically.
