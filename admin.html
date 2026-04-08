@@ -191,6 +191,55 @@
 
     @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
 
+    /* ── Responsive / Mobile ── */
+
+    /* Tablets and larger phones (≤768px) */
+    @media (max-width: 768px) {
+      .admin-main { padding: 1.5rem 1rem; }
+
+      .product-row { flex-wrap: wrap; }
+
+      /* Push actions + toggle below the info row, aligned with info */
+      .row-actions {
+        order: 3;
+        margin-left: calc(48px + 0.9rem); /* align under .row-info (visual width + gap) */
+        flex: 1;
+        flex-wrap: wrap;
+      }
+
+      .toggle-wrap {
+        order: 4;
+        flex-direction: row;
+        gap: 0.5rem;
+      }
+    }
+
+    /* Phones (≤500px) */
+    @media (max-width: 500px) {
+      header.admin-header { padding: 0 0.75rem; height: 56px; }
+
+      .header-logo { font-size: 1rem; gap: 0.4rem; }
+
+      .header-actions { gap: 0.35rem; }
+      .btn-ghost { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+
+      .admin-main { padding: 1rem 0.75rem; }
+
+      .card { padding: 1rem; }
+
+      .btn-edit,
+      .btn-delete { padding: 0.45rem 0.7rem; font-size: 0.8rem; }
+
+      .pin-row { flex-direction: column; }
+      .pin-row input, .pin-row .btn-save { width: 100%; }
+    }
+
+    /* Very small phones (≤380px) — hide supplementary link text */
+    @media (max-width: 380px) {
+      .link-text { display: none; }
+      .back-link { font-size: 0.9rem; }
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -580,7 +629,7 @@
       NNBC Admin
     </div>
     <div class="header-actions">
-      <a href="index.html" class="back-link" target="_blank">↗ View Store</a>
+      <a href="index.html" class="back-link" target="_blank">↗ <span class="link-text">View Store</span></a>
       <button class="btn-ghost" id="logout-btn">Log Out</button>
     </div>
   </header>
