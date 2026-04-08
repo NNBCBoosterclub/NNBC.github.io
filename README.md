@@ -6,7 +6,7 @@ A simple web interface for the NNBC Snack Bar. Users browse the menu, add items 
 
 The site is deployed automatically to **GitHub Pages** whenever changes are pushed to the `main` branch. The workflow (`.github/workflows/deploy.yml`) handles everything automatically.
 
-**Live URL:** **https://NNBCBoosterclub.github.io/**
+**Live URL:** **https://nnbcboosterclub.github.io/NNBC.github.io/**
 
 ---
 
@@ -25,7 +25,7 @@ The QR code is generated from the live URL, so it always stays up to date.
 The site now includes a built-in **owner admin panel** at:
 
 ```
-https://NNBCBoosterclub.github.io/admin.html
+https://nnbcboosterclub.github.io/NNBC.github.io/admin.html
 ```
 
 ### What you can do in the admin panel
