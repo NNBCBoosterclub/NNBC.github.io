@@ -53,8 +53,8 @@ The first time you open `admin.html` you'll be asked to **create a PIN** (at lea
 The Venmo account details live at the top of `index.html` inside the `<script>` block:
 
 ```js
-const VENMO_USERNAME = "NNBC-Snackbar";  // Venmo @handle (no @)
-const VENMO_DISPLAY  = "NNBC Snack Bar"; // Display name shown to users
+const VENMO_USERNAME = "northernneckboosterclub@gmail.com";  // Venmo @handle (no @)
+const VENMO_DISPLAY  = "Northern Neck Booster Club"; // Display name shown to users
 ```
 
 Edit those values and push to `main` — the site redeploys automatically.
