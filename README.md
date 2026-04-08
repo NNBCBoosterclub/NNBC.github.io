@@ -30,6 +30,43 @@ By default the site lives at a URL like `jaugustineflory.github.io/NNBC-Shop/`. 
 
 ---
 
+## 🔐 Admin Login & Item Management
+
+Shop owners and maintainers can log in to manage the menu directly from the browser — no code changes needed.
+
+### How to log in
+
+1. Click the **🔐 Login** button in the top-right corner of the site.
+2. Enter the admin password (default: **`NNBC2024`**).
+3. The button changes to **⚙️ Admin** and the Admin Panel slides open.
+
+### What admins can do
+
+| Action | How |
+|---|---|
+| **Add a new item** | Fill in the "Add New Item" form and click **💾 Save Item** |
+| **Upload a photo** | Click the photo area in the form to pick an image file (max 5 MB) |
+| **Edit an item** | Click **✏️ Edit** next to any item in the "Current Items" list |
+| **Delete an item** | Click **🗑️** next to any item |
+| **Reset to defaults** | Click **↺ Reset to Defaults** in the Admin Panel header |
+| **Log out** | Click **🔓 Logout** |
+
+> **Tip:** Item changes are saved in the browser's local storage, so they persist across page refreshes on the same device. Use "Reset to Defaults" to go back to the built-in menu.
+
+### Changing the admin password
+
+Open `index.html` and find this line near the top of the `<script>` block:
+
+```js
+const ADMIN_PASSWORD = "NNBC2024";
+```
+
+Replace `"NNBC2024"` with your own password and push to `main`.
+
+> **Important:** Change the default password before going live. Because this is a static site, the password is visible in the page source on GitHub — it provides a convenient access barrier for the Admin UI, not cryptographic security.
+
+---
+
 ## 📷 QR Code
 
 The site has a built-in **QR Code** button in the top-right corner. Click it to:
@@ -40,18 +77,13 @@ The QR code is generated from the live URL, so it always stays up to date.
 
 ---
 
-## ✏️ Updating the Menu or Venmo Info
+## ✏️ Updating Venmo Info (code)
 
-All menu items and the Venmo account details live at the top of `index.html` inside the `<script>` block:
+The Venmo account details live at the top of `index.html` inside the `<script>` block:
 
 ```js
 const VENMO_USERNAME = "NNBC-Snackbar";  // Venmo @handle (no @)
 const VENMO_DISPLAY  = "NNBC Snack Bar"; // Display name shown to users
-
-const PRODUCTS = [
-  { id: 1, name: "Chips", emoji: "🥔", price: 1.00, category: "Snacks" },
-  // ...
-];
 ```
 
 Edit those values and push to `main` — the site redeploys automatically.
