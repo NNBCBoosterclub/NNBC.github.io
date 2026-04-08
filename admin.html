@@ -603,8 +603,13 @@
           </div>
           <div class="form-group">
             <label for="f-category">Category *</label>
-            <input type="text" id="f-category" list="cat-list" placeholder="e.g. Snacks" required maxlength="40" />
-            <datalist id="cat-list"></datalist>
+            <select id="f-category" required>
+              <option value="" disabled selected>Select a category</option>
+              <option value="Meal">Meal</option>
+              <option value="Drink">Drink</option>
+              <option value="Snack">Snack</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div class="form-group">
             <label for="f-emoji">Emoji (optional)</label>
@@ -666,24 +671,24 @@
   const IMAGE_QUALITY = 0.82; // JPEG compression quality for uploaded photos
 
   const DEFAULT_PRODUCTS = [
-    { id: 1,  name: "Chips",         emoji: "🥔", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 2,  name: "Pretzels",      emoji: "🥨", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 3,  name: "Granola Bar",   emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 4,  name: "Cookies",       emoji: "🍪", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 5,  name: "Crackers",      emoji: "🫙", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 6,  name: "Fruit Snacks",  emoji: "🍬", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 7,  name: "Popcorn",       emoji: "🍿", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 8,  name: "Candy Bar",     emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 9,  name: "Water",         emoji: "💧", price: 1.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 10, name: "Sports Drink",  emoji: "🥤", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 11, name: "Juice Box",     emoji: "🧃", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 12, name: "Soda",          emoji: "🥤", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 13, name: "Hot Chocolate", emoji: "☕", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 14, name: "Coffee",        emoji: "☕", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 15, name: "Sandwich",      emoji: "🥪", price: 4.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 16, name: "Hot Dog",       emoji: "🌭", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 17, name: "Nachos",        emoji: "🧀", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 18, name: "Pizza Slice",   emoji: "🍕", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 1,  name: "Chips",         emoji: "🥔", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 2,  name: "Pretzels",      emoji: "🥨", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 3,  name: "Granola Bar",   emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, inStock: true },
+    { id: 4,  name: "Cookies",       emoji: "🍪", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 5,  name: "Crackers",      emoji: "🫙", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 6,  name: "Fruit Snacks",  emoji: "🍬", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 7,  name: "Popcorn",       emoji: "🍿", price: 1.00, category: "Snack", imageUrl: null, inStock: true },
+    { id: 8,  name: "Candy Bar",     emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, inStock: true },
+    { id: 9,  name: "Water",         emoji: "💧", price: 1.00, category: "Drink", imageUrl: null, inStock: true },
+    { id: 10, name: "Sports Drink",  emoji: "🥤", price: 2.00, category: "Drink", imageUrl: null, inStock: true },
+    { id: 11, name: "Juice Box",     emoji: "🧃", price: 1.50, category: "Drink", imageUrl: null, inStock: true },
+    { id: 12, name: "Soda",          emoji: "🥤", price: 1.50, category: "Drink", imageUrl: null, inStock: true },
+    { id: 13, name: "Hot Chocolate", emoji: "☕", price: 2.00, category: "Drink", imageUrl: null, inStock: true },
+    { id: 14, name: "Coffee",        emoji: "☕", price: 1.50, category: "Drink", imageUrl: null, inStock: true },
+    { id: 15, name: "Sandwich",      emoji: "🥪", price: 4.00, category: "Meal",  imageUrl: null, inStock: true },
+    { id: 16, name: "Hot Dog",       emoji: "🌭", price: 3.00, category: "Meal",  imageUrl: null, inStock: true },
+    { id: 17, name: "Nachos",        emoji: "🧀", price: 3.00, category: "Meal",  imageUrl: null, inStock: true },
+    { id: 18, name: "Pizza Slice",   emoji: "🍕", price: 3.00, category: "Meal",  imageUrl: null, inStock: true },
   ];
 
   // ─────────────────────────────────────────────────────
@@ -751,7 +756,6 @@
     } else {
       $("admin-panel").style.display = "block";
       renderProductList();
-      refreshCatList();
     }
   }
 
@@ -819,17 +823,7 @@
     return list.length === 0 ? 1 : Math.max(...list.map(p => p.id)) + 1;
   }
 
-  // ─────────────────────────────────────────────────────
-  //  CATEGORY DATALIST
-  // ─────────────────────────────────────────────────────
-  function refreshCatList() {
-    const list = loadProducts();
-    const cats = [...new Set(list.map(p => p.category))];
-    const dl = $("cat-list");
-    dl.innerHTML = cats.map(c => `<option value="${escHtml(c)}"></option>`).join("");
-  }
 
-  // ─────────────────────────────────────────────────────
   //  IMAGE HELPERS
   // ─────────────────────────────────────────────────────
   // Resize uploaded image to max 300×300 and return base64 JPEG
@@ -969,7 +963,6 @@
 
     resetForm();
     renderProductList();
-    refreshCatList();
   });
 
   // ─────────────────────────────────────────────────────
@@ -1064,7 +1057,6 @@
           saveProducts(prods);
           showToast(`"${p.name}" deleted.`);
           renderProductList();
-          refreshCatList();
           // If we were editing this item, reset form
           if ($("edit-id").value === String(p.id)) resetForm();
         });
@@ -1101,7 +1093,6 @@
     localStorage.removeItem(STORAGE_KEY);
     showToast("Menu reset to defaults.");
     renderProductList();
-    refreshCatList();
     resetForm();
   });
 
