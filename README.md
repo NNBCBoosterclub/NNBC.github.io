@@ -4,29 +4,9 @@ A simple web interface for the NNBC Snack Bar. Users browse the menu, add items 
 
 ## 🌐 Live Site & Hosting on GitHub
 
-The site is deployed automatically to **GitHub Pages** whenever changes are pushed to the `main` branch.
+The site is deployed automatically to **GitHub Pages** whenever changes are pushed to the `main` branch. The workflow (`.github/workflows/deploy.yml`) handles everything automatically.
 
-### Getting a clean `NNBCBoosterclub.github.io` URL
-
-By default the site lives at a URL like `jaugustineflory.github.io/NNBC-Shop/`. To get the clean **`NNBCBoosterclub.github.io`** address (no sub-path), follow these steps:
-
-1. **Create a free GitHub organization** named exactly `NNBCBoosterclub`:
-   - Go to [github.com/organizations/new](https://github.com/organizations/new) and choose the free plan.
-   - Set the organization name to `NNBCBoosterclub`.
-
-2. **Transfer this repository** to that organization:
-   - Go to this repo → **Settings** → scroll to the bottom → **Transfer ownership** → enter `NNBCBoosterclub`.
-
-3. **Rename the repository** to `NNBCBoosterclub.github.io`:
-   - Inside the transferred repo → **Settings** → **General** → change the name to `NNBCBoosterclub.github.io`.
-
-4. **Enable GitHub Pages** (one-time):
-   - Go to **Settings → Pages** → under **Source** select **GitHub Actions** → Save.
-
-5. Push any change to `main` (or re-run the workflow manually) and the site will be live at:
-   **https://NNBCBoosterclub.github.io/**
-
-> **Already have the right org & repo name?** You only need step 4 above — the workflow (`.github/workflows/deploy.yml`) handles everything else automatically.
+**Live URL:** **https://NNBCBoosterclub.github.io/**
 
 ---
 
