@@ -667,6 +667,23 @@
     }
     #print-qr-btn:hover { filter: brightness(1.12); }
 
+    /* ── Cart item image ── */
+    .cart-item-img {
+      width: 2rem;
+      height: 2rem;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ── Product image ── */
+    .product-img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
     /* ── Print styles ── */
     @media print {
       body > *:not(#print-area) { display: none !important; }
@@ -810,27 +827,39 @@
   const VENMO_USERNAME   = "NNBC-Snackbar";   // @handle (no @)
   const VENMO_DISPLAY    = "NNBC Snack Bar";  // Display name shown to user
 
-  const PRODUCTS = [
-    // { id, name, emoji, price, category }
-    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snacks" },
-    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snacks" },
-    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snacks" },
-    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snacks" },
-    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snacks" },
-    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snacks" },
-    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snacks" },
-    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snacks" },
-    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drinks" },
-    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drinks" },
-    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drinks" },
-    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drinks" },
-    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drinks" },
-    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drinks" },
-    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Food"   },
-    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Food"   },
-    { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Food"   },
-    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Food"   },
+  const DEFAULT_PRODUCTS = [
+    // { id, name, emoji, price, category, imageUrl, inStock }
+    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
   ];
+
+  const STORAGE_KEY = "nnbc_products";
+
+  function loadProducts() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return structuredClone(DEFAULT_PRODUCTS);
+  }
+
+  let products = loadProducts();
 
   // ─────────────────────────────────────────────────────
   //  STATE
@@ -855,13 +884,16 @@
   // ─────────────────────────────────────────────────────
   //  RENDER MENU
   // ─────────────────────────────────────────────────────
-  const categories = ["All", ...new Set(PRODUCTS.map(p => p.category))];
   let activeCategory = "All";
+
+  function getCategories() {
+    return ["All", ...new Set(products.map(p => p.category))];
+  }
 
   function buildTabs() {
     const container = getById("tabs");
     container.innerHTML = "";
-    categories.forEach(cat => {
+    getCategories().forEach(cat => {
       const btn = document.createElement("button");
       btn.className = "tab-btn" + (cat === activeCategory ? " active" : "");
       btn.textContent = cat;
@@ -878,30 +910,44 @@
     const grid = getById("product-grid");
     grid.innerHTML = "";
     const filtered = activeCategory === "All"
-      ? PRODUCTS
-      : PRODUCTS.filter(p => p.category === activeCategory);
+      ? products
+      : products.filter(p => p.category === activeCategory);
 
     filtered.forEach(p => {
+      const outOfStock = p.inStock === false;
       const qty = cart[p.id] || 0;
       const card = document.createElement("div");
-      card.className = "product-card";
+      card.className = "product-card" + (outOfStock ? " out-of-stock" : "");
       card.dataset.id = p.id;
-      card.innerHTML = `
-        <div class="product-emoji">${p.emoji}</div>
+
+      // Visual: image takes priority over emoji
+      const visual = document.createElement(p.imageUrl ? "img" : "div");
+      if (p.imageUrl) {
+        visual.className = "product-img";
+        visual.alt = p.name;
+        visual.src = p.imageUrl;
+      } else {
+        visual.className = "product-emoji";
+        visual.textContent = p.emoji || "🛍️";
+      }
+      card.appendChild(visual);
+
+      card.insertAdjacentHTML("beforeend", `
         <div class="product-name">${escHtml(p.name)}</div>
         <div class="product-price">${formatPrice(p.price)}</div>
         <div class="qty-control">
-          <button class="qty-btn" data-action="dec" aria-label="Decrease quantity">−</button>
+          <button class="qty-btn" data-action="dec" aria-label="Decrease quantity" ${outOfStock ? 'disabled' : ''}>−</button>
           <span class="qty-display" id="qty-${p.id}">${qty}</span>
-          <button class="qty-btn" data-action="inc" aria-label="Increase quantity">+</button>
+          <button class="qty-btn" data-action="inc" aria-label="Increase quantity" ${outOfStock ? 'disabled' : ''}>+</button>
         </div>
-        <button class="add-btn" ${qty === 0 ? 'disabled' : ''} data-id="${p.id}">
-          ${qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
-        </button>`;
+        <button class="add-btn" ${qty === 0 || outOfStock ? 'disabled' : ''} data-id="${p.id}">
+          ${outOfStock ? 'Out of stock' : qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
+        </button>`);
 
       // Qty controls
       card.querySelectorAll(".qty-btn").forEach(btn => {
         btn.addEventListener("click", () => {
+          if (outOfStock) return;
           const action = btn.dataset.action;
           const cur = parseInt(getById("qty-" + p.id).textContent, 10);
           const next = action === "inc" ? cur + 1 : Math.max(0, cur - 1);
@@ -934,7 +980,7 @@
   // ─────────────────────────────────────────────────────
   function cartTotal() {
     return Object.entries(cart).reduce((sum, [id, qty]) => {
-      const p = PRODUCTS.find(p => p.id === +id);
+      const p = products.find(p => p.id === +id);
       return sum + (p ? p.price * qty : 0);
     }, 0);
   }
@@ -971,12 +1017,23 @@
 
     container.innerHTML = "";
     entries.forEach(([id, qty]) => {
-      const p = PRODUCTS.find(p => p.id === +id);
+      const p = products.find(p => p.id === +id);
       if (!p) return;
       const row = document.createElement("div");
       row.className = "cart-item";
-      row.innerHTML = `
-        <div class="cart-item-emoji">${p.emoji}</div>
+
+      // Visual: image or emoji in cart
+      const visual = document.createElement(p.imageUrl ? "img" : "div");
+      if (p.imageUrl) {
+        visual.className = "cart-item-img";
+        visual.alt = p.name;
+        visual.src = p.imageUrl;
+      } else {
+        visual.className = "cart-item-emoji";
+        visual.textContent = p.emoji || "🛍️";
+      }
+
+      row.insertAdjacentHTML("beforeend", `
         <div class="cart-item-info">
           <div class="cart-item-name">${escHtml(p.name)}</div>
           <div class="cart-item-unit">${formatPrice(p.price)} each</div>
@@ -986,7 +1043,8 @@
           <span class="cqty-val">${qty}</span>
           <button class="cqty-btn" data-id="${p.id}" data-action="inc" aria-label="Add one ${escHtml(p.name)}">+</button>
         </div>
-        <div class="cart-item-total">${formatPrice(p.price * qty)}</div>`;
+        <div class="cart-item-total">${formatPrice(p.price * qty)}</div>`);
+      row.insertBefore(visual, row.firstChild);
 
       row.querySelectorAll(".cqty-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -1035,10 +1093,10 @@
     const list = getById("modal-order-list");
     list.innerHTML = "";
     entries.forEach(([id, qty]) => {
-      const p = PRODUCTS.find(p => p.id === +id);
+      const p = products.find(p => p.id === +id);
       if (!p) return;
       const li = document.createElement("li");
-      li.innerHTML = `<span>${p.emoji} ${qty}× ${escHtml(p.name)}</span><span>${formatPrice(p.price * qty)}</span>`;
+      li.innerHTML = `<span>${p.emoji || ''} ${qty}× ${escHtml(p.name)}</span><span>${formatPrice(p.price * qty)}</span>`;
       list.appendChild(li);
     });
 
@@ -1087,7 +1145,7 @@
     const parts = Object.entries(cart)
       .filter(([,q]) => q > 0)
       .map(([id, qty]) => {
-        const p = PRODUCTS.find(p => p.id === +id);
+        const p = products.find(p => p.id === +id);
         return p ? `${qty}x ${p.name}` : "";
       })
       .filter(Boolean);

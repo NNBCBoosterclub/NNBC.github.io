@@ -40,18 +40,41 @@ The QR code is generated from the live URL, so it always stays up to date.
 
 ---
 
-## ✏️ Updating the Menu or Venmo Info
+## ✏️ Updating the Menu or Venmo Info (Admin Panel)
 
-All menu items and the Venmo account details live at the top of `index.html` inside the `<script>` block:
+The site now includes a built-in **owner admin panel** at:
+
+```
+https://NNBCBoosterclub.github.io/admin.html
+```
+
+### What you can do in the admin panel
+
+| Feature | How |
+|---|---|
+| **Add items** | Fill in name, price, category, emoji, and optional photo → click *Add Item* |
+| **Edit items** | Click ✏️ Edit on any row → update fields → click *Save Changes* |
+| **Delete items** | Click 🗑 Delete on any row and confirm |
+| **Upload a photo** | Use the *Product Photo* field when adding or editing; images are resized automatically |
+| **Mark out of stock** | Toggle the *In Stock* switch on any item row |
+| **Reset to defaults** | Scroll to *Danger Zone* → *Reset to Defaults* (clears all custom changes) |
+| **Change admin PIN** | Scroll to *Settings* → enter and confirm a new PIN |
+
+### First-time login
+
+The first time you open `admin.html` you'll be asked to **create a PIN** (at least 4 characters). After that, you'll need the PIN every time you open the admin panel. If you forget the PIN, clear the browser's localStorage for the site.
+
+> **Changes are instant** — customers see the updated menu as soon as they reload the store page.
+
+---
+
+## ✏️ Updating Venmo Info (still in code)
+
+The Venmo account details live at the top of `index.html` inside the `<script>` block:
 
 ```js
 const VENMO_USERNAME = "NNBC-Snackbar";  // Venmo @handle (no @)
 const VENMO_DISPLAY  = "NNBC Snack Bar"; // Display name shown to users
-
-const PRODUCTS = [
-  { id: 1, name: "Chips", emoji: "🥔", price: 1.00, category: "Snacks" },
-  // ...
-];
 ```
 
 Edit those values and push to `main` — the site redeploys automatically.

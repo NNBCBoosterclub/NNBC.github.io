@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NNBC Snack Bar — Admin</title>
+  <style>
+    :root {
+      --primary: #1a3a5c;
+      --accent: #e8a020;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #1e2a38;
+      --text-light: #5a6a7a;
+      --border: #d0d8e4;
+      --danger: #c0392b;
+      --danger-bg: #fdf0f0;
+      --success: #27ae60;
+      --success-bg: #edfaf1;
+      --shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Screens ── */
+    .screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .auth-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .auth-box .logo {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .auth-box h1 {
+      font-size: 1.35rem;
+      color: var(--primary);
+      margin-bottom: 0.3rem;
+    }
+
+    .auth-box .subtitle {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-box label {
+      display: block;
+      text-align: left;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .auth-box input[type="password"],
+    .auth-box input[type="text"] {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 1rem;
+      text-align: center;
+      letter-spacing: 0.15em;
+    }
+
+    .auth-box input:focus { border-color: var(--primary); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      min-height: 1.2em;
+    }
+
+    /* ── Admin Panel Header ── */
+    #admin-panel { display: none; }
+
+    header.admin-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.28); }
+
+    /* ── Main Content ── */
+    .admin-main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 1.25rem;
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 0.4rem;
+      display: inline-block;
+    }
+
+    /* ── Add / Edit Form ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 0.6rem 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--primary); }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-save {
+      padding: 0.65rem 1.4rem;
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+    .btn-save:hover { filter: brightness(1.1); }
+
+    .btn-cancel {
+      padding: 0.65rem 1.2rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      transition: background 0.12s;
+    }
+    .btn-cancel:hover { background: var(--border); }
+
+    /* ── Image Preview ── */
+    .image-preview-wrap {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    #img-preview {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      display: none;
+    }
+
+    #img-preview.visible { display: block; }
+
+    .btn-clear-img {
+      font-size: 0.8rem;
+      color: var(--danger);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      display: none;
+    }
+    .btn-clear-img.visible { display: inline; }
+
+    /* ── Product List ── */
+    #product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .product-row {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      box-shadow: var(--shadow);
+    }
+
+    .product-row.out-of-stock { opacity: 0.6; }
+
+    .row-visual {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    .row-visual img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .row-info { flex: 1; min-width: 0; }
+
+    .row-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-meta {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 0.1rem;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .btn-edit {
+      padding: 0.35rem 0.75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.12s;
+    }
+    .btn-edit:hover { filter: brightness(1.12); }
+
+    .btn-delete {
+      padding: 0.35rem 0.75rem;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .btn-delete:hover { background: var(--danger); color: #fff; }
+
+    /* In-stock toggle */
+    .toggle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .toggle-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 22px;
+      transition: background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track { background: var(--success); }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+
+    /* ── Danger Zone ── */
+    .danger-zone {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .danger-zone h3 {
+      color: var(--danger);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .danger-zone p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+
+    .btn-danger {
+      padding: 0.6rem 1.2rem;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.12s;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .btn-danger:hover { filter: brightness(1.1); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--primary);
+      color: #fff;
+      padding: 0.65rem 1.25rem;
+      border-radius: 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      z-index: 500;
+      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ── Category badge ── */
+    .cat-badge {
+      display: inline-block;
+      background: rgba(26,58,92,0.1);
+      color: var(--primary);
+      border-radius: 12px;
+      padding: 0.1rem 0.55rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    /* ── Change PIN section ── */
+    .pin-section {
+      margin-top: 1rem;
+    }
+
+    .pin-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .pin-row input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.6rem 0.8rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .pin-row input:focus { border-color: var(--primary); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .back-link:hover { color: #fff; }
+
+    .category-heading {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 1rem 0 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════ SETUP SCREEN (first run) ══════════════════════ -->
+<div id="setup-screen" class="screen" style="display:none">
+  <div class="auth-box">
+    <div class="logo">🔒</div>
+    <h1>Create Admin PIN</h1>
+    <p class="subtitle">Set a PIN to protect the admin panel. You'll need it every time you log in.</p>
+    <label for="setup-pin">New PIN</label>
+    <input type="password" id="setup-pin" placeholder="••••" maxlength="20" autocomplete="new-password" />
+    <label for="setup-pin-confirm">Confirm PIN</label>
+    <input type="password" id="setup-pin-confirm" placeholder="••••" maxlength="20" autocomplete="new-password" />
+    <button class="btn-primary" id="setup-btn">Create PIN &amp; Enter Admin</button>
+    <div class="error-msg" id="setup-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ LOGIN SCREEN ══════════════════════ -->
+<div id="login-screen" class="screen" style="display:none">
+  <div class="auth-box">
+    <div class="logo">🛒</div>
+    <h1>Admin Login</h1>
+    <p class="subtitle">NNBC Snack Bar — Owner Panel</p>
+    <label for="pin-input">PIN</label>
+    <input type="password" id="pin-input" placeholder="••••" maxlength="20" autocomplete="current-password" />
+    <button class="btn-primary" id="login-btn">Log In</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ ADMIN PANEL ══════════════════════ -->
+<div id="admin-panel">
+  <header class="admin-header">
+    <div class="header-logo">
+      <span>⚙️</span>
+      NNBC Admin
+    </div>
+    <div class="header-actions">
+      <a href="index.html" class="back-link" target="_blank">↗ View Store</a>
+      <button class="btn-ghost" id="logout-btn">Log Out</button>
+    </div>
+  </header>
+
+  <div class="admin-main">
+
+    <!-- ── Add / Edit Item ── -->
+    <h2 class="section-title" id="form-heading">➕ Add New Item</h2>
+    <div class="card">
+      <form id="item-form" autocomplete="off">
+        <input type="hidden" id="edit-id" value="" />
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="f-name">Item Name *</label>
+            <input type="text" id="f-name" placeholder="e.g. Chips" required maxlength="60" />
+          </div>
+          <div class="form-group">
+            <label for="f-price">Price ($) *</label>
+            <input type="number" id="f-price" placeholder="1.00" min="0" step="0.25" required />
+          </div>
+          <div class="form-group">
+            <label for="f-category">Category *</label>
+            <input type="text" id="f-category" list="cat-list" placeholder="e.g. Snacks" required maxlength="40" />
+            <datalist id="cat-list"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="f-emoji">Emoji (optional)</label>
+            <input type="text" id="f-emoji" placeholder="🥔" maxlength="4" />
+          </div>
+          <div class="form-group full">
+            <label for="f-image">Product Photo (optional)</label>
+            <input type="file" id="f-image" accept="image/*" />
+            <div class="image-preview-wrap">
+              <img id="img-preview" alt="Image preview" />
+              <button type="button" class="btn-clear-img" id="clear-img-btn">✕ Remove photo</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save" id="form-submit-btn">Add Item</button>
+          <button type="button" class="btn-cancel" id="cancel-edit-btn" style="display:none">Cancel Edit</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ── Current Menu ── -->
+    <h2 class="section-title">📋 Current Menu</h2>
+    <div id="product-list"></div>
+
+    <!-- ── Settings ── -->
+    <h2 class="section-title" style="margin-top:2rem">⚙️ Settings</h2>
+    <div class="card">
+      <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:1rem;">Change the admin PIN used to access this page.</p>
+      <div class="pin-row">
+        <input type="password" id="new-pin" placeholder="New PIN" maxlength="20" />
+        <input type="password" id="new-pin-confirm" placeholder="Confirm new PIN" maxlength="20" />
+        <button type="button" class="btn-save" id="change-pin-btn">Update PIN</button>
+      </div>
+      <div class="error-msg" id="pin-change-error"></div>
+    </div>
+
+    <!-- ── Danger Zone ── -->
+    <div class="danger-zone">
+      <h3>⚠️ Danger Zone</h3>
+      <p>Reset all menu items back to the built-in defaults. This cannot be undone.</p>
+      <button class="btn-danger" id="reset-btn">Reset to Defaults</button>
+    </div>
+
+  </div><!-- /admin-main -->
+</div><!-- /admin-panel -->
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<!-- ══════════════════════ SCRIPT ══════════════════════ -->
+<script>
+  // ─────────────────────────────────────────────────────
+  //  CONSTANTS
+  // ─────────────────────────────────────────────────────
+  const STORAGE_KEY  = "nnbc_products";
+  const PIN_KEY      = "nnbc_admin_pin";
+  const SESSION_KEY  = "nnbc_admin_auth";
+  const IMAGE_QUALITY = 0.82; // JPEG compression quality for uploaded photos
+
+  const DEFAULT_PRODUCTS = [
+    { id: 1,  name: "Chips",         emoji: "🥔", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 2,  name: "Pretzels",      emoji: "🥨", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 3,  name: "Granola Bar",   emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 4,  name: "Cookies",       emoji: "🍪", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 5,  name: "Crackers",      emoji: "🫙", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 6,  name: "Fruit Snacks",  emoji: "🍬", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 7,  name: "Popcorn",       emoji: "🍿", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 8,  name: "Candy Bar",     emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
+    { id: 9,  name: "Water",         emoji: "💧", price: 1.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 10, name: "Sports Drink",  emoji: "🥤", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 11, name: "Juice Box",     emoji: "🧃", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 12, name: "Soda",          emoji: "🥤", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 13, name: "Hot Chocolate", emoji: "☕", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 14, name: "Coffee",        emoji: "☕", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
+    { id: 15, name: "Sandwich",      emoji: "🥪", price: 4.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 16, name: "Hot Dog",       emoji: "🌭", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 17, name: "Nachos",        emoji: "🧀", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+    { id: 18, name: "Pizza Slice",   emoji: "🍕", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
+  ];
+
+  // ─────────────────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+
+  function showToast(msg, isError = false) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.background = isError ? "#c0392b" : "#1a3a5c";
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove("show"), 2500);
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  PIN (hashed with Web Crypto)
+  // ─────────────────────────────────────────────────────
+  // PIN hashing uses SHA-256 via Web Crypto to avoid storing the PIN in plain text.
+  // Note: since this is entirely client-side, a determined attacker with device access
+  // could read localStorage directly. This protection is intended to prevent casual
+  // (non-technical) access to the admin panel.
+  async function hashPin(pin) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode("nnbc_salt_2024:" + pin);
+    const buf  = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function checkPin(pin) {
+    const stored = localStorage.getItem(PIN_KEY);
+    if (!stored) return false;
+    return (await hashPin(pin)) === stored;
+  }
+
+  async function setPin(pin) {
+    localStorage.setItem(PIN_KEY, await hashPin(pin));
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  ROUTING — decide which screen to show
+  // ─────────────────────────────────────────────────────
+  function route() {
+    const hasPin = !!localStorage.getItem(PIN_KEY);
+    const authed = sessionStorage.getItem(SESSION_KEY) === "1";
+
+    $("setup-screen").style.display  = "none";
+    $("login-screen").style.display  = "none";
+    $("admin-panel").style.display   = "none";
+
+    if (!hasPin) {
+      $("setup-screen").style.display = "flex";
+    } else if (!authed) {
+      $("login-screen").style.display = "flex";
+    } else {
+      $("admin-panel").style.display = "block";
+      renderProductList();
+      refreshCatList();
+    }
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  SETUP (first-run PIN creation)
+  // ─────────────────────────────────────────────────────
+  $("setup-btn").addEventListener("click", async () => {
+    const pin  = $("setup-pin").value.trim();
+    const pin2 = $("setup-pin-confirm").value.trim();
+    $("setup-error").textContent = "";
+
+    if (pin.length < 4) { $("setup-error").textContent = "PIN must be at least 4 characters."; return; }
+    if (pin !== pin2)   { $("setup-error").textContent = "PINs do not match."; return; }
+
+    await setPin(pin);
+    sessionStorage.setItem(SESSION_KEY, "1");
+    route();
+  });
+
+  // Submit on Enter in confirm field
+  $("setup-pin-confirm").addEventListener("keydown", e => { if (e.key === "Enter") $("setup-btn").click(); });
+
+  // ─────────────────────────────────────────────────────
+  //  LOGIN
+  // ─────────────────────────────────────────────────────
+  $("login-btn").addEventListener("click", async () => {
+    const pin = $("pin-input").value;
+    $("login-error").textContent = "";
+    if (await checkPin(pin)) {
+      sessionStorage.setItem(SESSION_KEY, "1");
+      $("pin-input").value = "";
+      route();
+    } else {
+      $("login-error").textContent = "Incorrect PIN. Please try again.";
+      $("pin-input").select();
+    }
+  });
+
+  $("pin-input").addEventListener("keydown", e => { if (e.key === "Enter") $("login-btn").click(); });
+
+  // ─────────────────────────────────────────────────────
+  //  LOGOUT
+  // ─────────────────────────────────────────────────────
+  $("logout-btn").addEventListener("click", () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    route();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  PRODUCTS — load / save
+  // ─────────────────────────────────────────────────────
+  function loadProducts() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return structuredClone(DEFAULT_PRODUCTS);
+  }
+
+  function saveProducts(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  function nextId(list) {
+    return list.length === 0 ? 1 : Math.max(...list.map(p => p.id)) + 1;
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  CATEGORY DATALIST
+  // ─────────────────────────────────────────────────────
+  function refreshCatList() {
+    const list = loadProducts();
+    const cats = [...new Set(list.map(p => p.category))];
+    const dl = $("cat-list");
+    dl.innerHTML = cats.map(c => `<option value="${escHtml(c)}"></option>`).join("");
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  IMAGE HELPERS
+  // ─────────────────────────────────────────────────────
+  // Resize uploaded image to max 300×300 and return base64 JPEG
+  function resizeAndEncode(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 300;
+          const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+          const w = Math.round(img.width  * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width  = w;
+          canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", IMAGE_QUALITY));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Tracks the image chosen for the current form session
+  let pendingImageUrl = null; // null = no change; "" = cleared; "data:..." = new image
+
+  $("f-image").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await resizeAndEncode(file);
+      pendingImageUrl = dataUrl;
+      $("img-preview").src = dataUrl;
+      $("img-preview").classList.add("visible");
+      $("clear-img-btn").classList.add("visible");
+    } catch (err) {
+      showToast("Could not load image. Please try another file.", true);
+    }
+  });
+
+  $("clear-img-btn").addEventListener("click", () => {
+    pendingImageUrl = ""; // signal "cleared"
+    $("f-image").value = "";
+    $("img-preview").src = "";
+    $("img-preview").classList.remove("visible");
+    $("clear-img-btn").classList.remove("visible");
+  });
+
+  function resetImageField(existingUrl) {
+    pendingImageUrl = null;
+    $("f-image").value = "";
+    if (existingUrl) {
+      $("img-preview").src = existingUrl;
+      $("img-preview").classList.add("visible");
+      $("clear-img-btn").classList.add("visible");
+    } else {
+      $("img-preview").src = "";
+      $("img-preview").classList.remove("visible");
+      $("clear-img-btn").classList.remove("visible");
+    }
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  ADD / EDIT FORM
+  // ─────────────────────────────────────────────────────
+  function resetForm() {
+    $("item-form").reset();
+    $("edit-id").value = "";
+    $("form-heading").textContent = "➕ Add New Item";
+    $("form-submit-btn").textContent = "Add Item";
+    $("cancel-edit-btn").style.display = "none";
+    resetImageField(null);
+  }
+
+  function startEdit(id) {
+    const list = loadProducts();
+    const p = list.find(x => x.id === id);
+    if (!p) return;
+
+    $("edit-id").value    = id;
+    $("f-name").value     = p.name;
+    $("f-price").value    = p.price;
+    $("f-category").value = p.category;
+    $("f-emoji").value    = p.emoji || "";
+    resetImageField(p.imageUrl || null);
+
+    $("form-heading").textContent        = "✏️ Edit Item";
+    $("form-submit-btn").textContent     = "Save Changes";
+    $("cancel-edit-btn").style.display   = "inline-flex";
+
+    // Scroll to form
+    $("form-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("cancel-edit-btn").addEventListener("click", resetForm);
+
+  $("item-form").addEventListener("submit", e => {
+    e.preventDefault();
+
+    const name     = $("f-name").value.trim();
+    const price    = parseFloat($("f-price").value);
+    const category = $("f-category").value.trim();
+    const emoji    = $("f-emoji").value.trim();
+    const editId   = $("edit-id").value;
+
+    if (!name || isNaN(price) || price < 0 || !category) {
+      showToast("Please fill in all required fields.", true);
+      return;
+    }
+
+    const list = loadProducts();
+
+    if (editId) {
+      // Edit existing
+      const idx = list.findIndex(x => x.id === +editId);
+      if (idx === -1) { showToast("Item not found.", true); return; }
+
+      // Resolve imageUrl
+      let imageUrl = list[idx].imageUrl;
+      if (pendingImageUrl === "")       imageUrl = null;  // cleared
+      else if (pendingImageUrl !== null) imageUrl = pendingImageUrl; // new upload
+
+      list[idx] = { ...list[idx], name, price, category, emoji, imageUrl };
+      saveProducts(list);
+      showToast(`✅ "${name}" updated.`);
+    } else {
+      // Add new
+      const imageUrl = pendingImageUrl && pendingImageUrl !== "" ? pendingImageUrl : null;
+      list.push({ id: nextId(list), name, price, category, emoji, imageUrl, inStock: true });
+      saveProducts(list);
+      showToast(`✅ "${name}" added to menu.`);
+    }
+
+    resetForm();
+    renderProductList();
+    refreshCatList();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  RENDER PRODUCT LIST
+  // ─────────────────────────────────────────────────────
+  function renderProductList() {
+    const list = loadProducts();
+    const container = $("product-list");
+
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty-state">No items yet. Add your first item above!</div>`;
+      return;
+    }
+
+    // Group by category
+    const cats = [...new Set(list.map(p => p.category))];
+    container.innerHTML = "";
+
+    cats.forEach(cat => {
+      const items = list.filter(p => p.category === cat);
+
+      const heading = document.createElement("p");
+      heading.className = "category-heading";
+      heading.textContent = cat;
+      container.appendChild(heading);
+
+      items.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "product-row" + (p.inStock === false ? " out-of-stock" : "");
+        row.dataset.id = p.id;
+
+        // Visual
+        const visual = document.createElement("div");
+        visual.className = "row-visual";
+        if (p.imageUrl) {
+          const img = document.createElement("img");
+          img.src = p.imageUrl;
+          img.alt = p.name;
+          visual.appendChild(img);
+        } else {
+          visual.textContent = p.emoji || "🛍️";
+        }
+        row.appendChild(visual);
+
+        // Info
+        const info = document.createElement("div");
+        info.className = "row-info";
+        info.innerHTML = `
+          <div class="row-name">${escHtml(p.name)}</div>
+          <div class="row-meta">$${p.price.toFixed(2)} &nbsp;·&nbsp; <span class="cat-badge">${escHtml(p.category)}</span></div>`;
+        row.appendChild(info);
+
+        // In-stock toggle
+        const toggleWrap = document.createElement("div");
+        toggleWrap.className = "toggle-wrap";
+        toggleWrap.innerHTML = `
+          <span class="toggle-label">In&nbsp;Stock</span>
+          <label class="toggle" aria-label="Toggle in-stock for ${escHtml(p.name)}">
+            <input type="checkbox" ${p.inStock !== false ? "checked" : ""} />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>`;
+        const checkbox = toggleWrap.querySelector("input");
+        checkbox.addEventListener("change", () => {
+          const prods = loadProducts();
+          const item  = prods.find(x => x.id === p.id);
+          if (item) {
+            item.inStock = checkbox.checked;
+            saveProducts(prods);
+            row.classList.toggle("out-of-stock", !checkbox.checked);
+            showToast(checkbox.checked ? `"${p.name}" marked in stock.` : `"${p.name}" marked out of stock.`);
+          }
+        });
+        row.appendChild(toggleWrap);
+
+        // Actions
+        const actions = document.createElement("div");
+        actions.className = "row-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "btn-edit";
+        editBtn.textContent = "✏️ Edit";
+        editBtn.addEventListener("click", () => startEdit(p.id));
+        actions.appendChild(editBtn);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-delete";
+        delBtn.textContent = "🗑 Delete";
+        delBtn.addEventListener("click", () => {
+          if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+          const prods = loadProducts().filter(x => x.id !== p.id);
+          saveProducts(prods);
+          showToast(`"${p.name}" deleted.`);
+          renderProductList();
+          refreshCatList();
+          // If we were editing this item, reset form
+          if ($("edit-id").value === String(p.id)) resetForm();
+        });
+        actions.appendChild(delBtn);
+
+        row.appendChild(actions);
+        container.appendChild(row);
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  CHANGE PIN
+  // ─────────────────────────────────────────────────────
+  $("change-pin-btn").addEventListener("click", async () => {
+    const pin  = $("new-pin").value.trim();
+    const pin2 = $("new-pin-confirm").value.trim();
+    $("pin-change-error").textContent = "";
+
+    if (pin.length < 4) { $("pin-change-error").textContent = "PIN must be at least 4 characters."; return; }
+    if (pin !== pin2)   { $("pin-change-error").textContent = "PINs do not match."; return; }
+
+    await setPin(pin);
+    $("new-pin").value = "";
+    $("new-pin-confirm").value = "";
+    showToast("✅ PIN updated successfully.");
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  RESET TO DEFAULTS
+  // ─────────────────────────────────────────────────────
+  $("reset-btn").addEventListener("click", () => {
+    if (!confirm("Reset all menu items to defaults? All your custom items and photos will be lost.")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    showToast("Menu reset to defaults.");
+    renderProductList();
+    refreshCatList();
+    resetForm();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  INIT
+  // ─────────────────────────────────────────────────────
+  route();
+</script>
+</body>
+</html>
