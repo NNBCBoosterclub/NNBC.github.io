@@ -847,7 +847,7 @@
         const parsed = JSON.parse(saved);
         // Back-compat: convert old boolean inStock to stock field
         return parsed.map(p => {
-          if (!Object.prototype.hasOwnProperty.call(p, 'stock')) {
+          if (!('stock' in p)) {
             p.stock = (p.inStock === false) ? 0 : null;
             delete p.inStock;
           }
@@ -1161,16 +1161,14 @@
       .filter(Boolean);
     const note = "NNBC Snack Bar: " + noteParts.join(", ");
 
-    // Decrement stock for tracked items
-    const prods = loadProducts(); // re-read in case admin updated
+    // Decrement stock for tracked items (use in-memory list to avoid reading stale data)
     Object.entries(cart).forEach(([id, qty]) => {
-      const item = prods.find(p => p.id === +id);
+      const item = products.find(p => p.id === +id);
       if (item && item.stock !== null && item.stock !== undefined) {
         item.stock = Math.max(0, item.stock - qty);
       }
     });
-    saveProducts(prods);
-    products = prods; // update local copy so UI reflects new stock
+    saveProducts(products);
 
     const params = new URLSearchParams({
       txn:        "pay",

@@ -66,7 +66,9 @@ Each item has a **stock count** that you control:
 - **Admin uses "+ Restock"** to add quantity (e.g., after resupplying).
 - **Stock decrements automatically** when a customer opens Venmo to pay (i.e., when they confirm their order). Items with `≤ 5` units show a yellow "Only N left!" badge on the customer menu.
 
-> **Note:** Since this is a static site with no backend, stock is stored in localStorage on the device where orders are processed. It works best when the customer-facing display and the admin view run on the same device (e.g., a shared tablet at the counter).
+> **⚠️ Single-device limitation:** Since this is a static site with no backend, stock data is stored in the browser's localStorage. Each device has its own independent copy. This means:
+> - Stock decrements correctly when customers order on the **same device** as the admin panel.
+> - If customers order from **their own phones**, their stock decrement only affects their own browser — the admin's device won't see it. For this reason, inventory tracking works best on a **shared counter device** where both the menu and admin views run in the same browser.
 
 ---
 

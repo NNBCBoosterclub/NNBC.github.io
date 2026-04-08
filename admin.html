@@ -682,7 +682,8 @@
   const STORAGE_KEY  = "nnbc_products";
   const PIN_KEY      = "nnbc_admin_pin";
   const SESSION_KEY  = "nnbc_admin_auth";
-  const IMAGE_QUALITY = 0.82;
+  const IMAGE_QUALITY  = 0.82;
+  const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
 
   const DEFAULT_PRODUCTS = [
     // stock: null = unlimited/not tracked; 0 = out of stock; N = N units
@@ -762,10 +763,10 @@
 
     if (!hasPin) {
       $("setup-screen").style.display = "flex";
-      setTimeout(() => $("setup-pin").focus(), 100);
+      requestAnimationFrame(() => $("setup-pin").focus());
     } else if (!authed) {
       $("login-screen").style.display = "flex";
-      setTimeout(() => $("pin-input").focus(), 100);
+      requestAnimationFrame(() => $("pin-input").focus());
     } else {
       $("admin-panel").style.display = "block";
       renderProductList();
@@ -827,7 +828,7 @@
         const parsed = JSON.parse(saved);
         // Back-compat: convert old boolean inStock field to stock field
         return parsed.map(p => {
-          if (!Object.prototype.hasOwnProperty.call(p, 'stock')) {
+          if (!('stock' in p)) {
             p.stock = (p.inStock === false) ? 0 : null;
             delete p.inStock;
           }
@@ -869,7 +870,7 @@
   // ─────────────────────────────────────────────────────
   function resizeAndEncode(file) {
     return new Promise((resolve, reject) => {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > MAX_IMAGE_BYTES) {
         reject(new Error("File too large (max 2 MB)"));
         return;
       }
@@ -1130,12 +1131,12 @@
           const prods = loadProducts();
           const item  = prods.find(x => x.id === p.id);
           if (!item) return;
-          // If stock was null (unlimited), start tracking from addQty
-          item.stock = (item.stock === null || item.stock === undefined)
-            ? addQty
-            : item.stock + addQty;
+          const wasUnlimited = item.stock === null || item.stock === undefined;
+          // If stock was null (unlimited), begin tracking from addQty
+          item.stock = wasUnlimited ? addQty : item.stock + addQty;
           saveProducts(prods);
-          showToast(`✅ +${addQty} ${p.name} restocked. Now: ${item.stock}`);
+          const note = wasUnlimited ? ` (stock tracking started)` : "";
+          showToast(`✅ +${addQty} ${p.name} restocked. Now: ${item.stock}${note}`);
           renderProductList();
         }
 
