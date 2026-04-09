@@ -53,9 +53,7 @@
       letter-spacing: 0.02em;
     }
 
-    .logo-icon {
-      font-size: 1.6rem;
-    }
+    .logo-icon { font-size: 1.6rem; }
 
     #cart-btn {
       position: relative;
@@ -72,7 +70,6 @@
       gap: 0.45rem;
       transition: filter 0.15s;
     }
-
     #cart-btn:hover { filter: brightness(1.1); }
 
     #cart-badge {
@@ -126,7 +123,6 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-
     .tab-btn:hover, .tab-btn.active {
       background: var(--primary);
       border-color: var(--primary);
@@ -152,19 +148,16 @@
       box-shadow: var(--shadow);
       transition: transform 0.15s, box-shadow 0.15s;
     }
+    .product-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.13); }
+    .product-card.out-of-stock { opacity: 0.55; }
 
-    .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.13);
-    }
+    .product-emoji { font-size: 2.8rem; line-height: 1; }
 
-    .product-card.out-of-stock {
-      opacity: 0.5;
-    }
-
-    .product-emoji {
-      font-size: 2.8rem;
-      line-height: 1;
+    .product-img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
     }
 
     .product-name {
@@ -178,6 +171,19 @@
       font-size: 1rem;
       font-weight: 700;
       color: var(--primary);
+    }
+
+    .stock-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      background: #ffeef0;
+      color: var(--danger);
+    }
+    .stock-badge.low {
+      background: #fff8e1;
+      color: #b7770a;
     }
 
     .qty-control {
@@ -203,8 +209,8 @@
       transition: all 0.12s;
       color: var(--primary);
     }
-
     .qty-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .qty-btn:disabled { background: var(--bg); color: var(--border); border-color: var(--border); cursor: not-allowed; }
 
     .qty-display {
       min-width: 28px;
@@ -226,7 +232,6 @@
       transition: filter 0.12s;
       margin-top: 0.1rem;
     }
-
     .add-btn:hover { filter: brightness(1.15); }
     .add-btn:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; filter: none; }
 
@@ -253,7 +258,6 @@
       flex-direction: column;
       transition: right 0.28s cubic-bezier(0.4,0,0.2,1);
     }
-
     #cart-drawer.open { right: 0; }
     #cart-overlay.open { display: block; }
 
@@ -277,7 +281,6 @@
       line-height: 1;
       padding: 0 0.2rem;
     }
-
     #close-cart:hover { color: var(--accent); }
 
     .cart-items {
@@ -292,70 +295,71 @@
       margin-top: 3rem;
       font-size: 1rem;
     }
-
     .cart-empty span { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
 
     .cart-item {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.75rem 0;
+      padding: 0.65rem 0;
       border-bottom: 1px solid var(--border);
     }
+    .cart-item:last-child { border-bottom: none; }
 
-    .cart-item-emoji { font-size: 1.8rem; min-width: 2rem; text-align: center; }
+    .cart-item-emoji { font-size: 1.6rem; flex-shrink: 0; }
+
+    .cart-item-img {
+      width: 2rem;
+      height: 2rem;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
 
     .cart-item-info { flex: 1; min-width: 0; }
-    .cart-item-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cart-item-unit { font-size: 0.8rem; color: var(--text-light); }
+    .cart-item-name { font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cart-item-unit { font-size: 0.78rem; color: var(--text-light); }
 
     .cart-item-qty {
       display: flex;
       align-items: center;
       gap: 0.3rem;
+      flex-shrink: 0;
     }
 
     .cqty-btn {
       width: 26px;
       height: 26px;
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--border);
       background: var(--bg);
       border-radius: 5px;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--primary);
       transition: all 0.12s;
+      color: var(--primary);
     }
-
     .cqty-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
     .cqty-val { min-width: 22px; text-align: center; font-weight: 700; font-size: 0.9rem; }
 
-    .cart-item-total {
-      font-weight: 700;
-      font-size: 0.9rem;
-      min-width: 3.5rem;
-      text-align: right;
-      color: var(--primary);
-    }
+    .cart-item-total { font-size: 0.88rem; font-weight: 700; color: var(--primary); flex-shrink: 0; }
 
     .cart-footer {
       padding: 1rem 1.25rem;
-      border-top: 2px solid var(--border);
+      border-top: 1px solid var(--border);
       background: var(--card-bg);
     }
 
     .cart-total-row {
       display: flex;
       justify-content: space-between;
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      margin-bottom: 1rem;
-      color: var(--primary);
+      margin-bottom: 0.75rem;
     }
 
     #checkout-btn {
@@ -375,13 +379,18 @@
       transition: filter 0.15s;
       letter-spacing: 0.01em;
     }
-
     #checkout-btn:hover { filter: brightness(1.08); }
     #checkout-btn:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; filter: none; }
 
     .venmo-logo {
-      font-size: 1rem;
+      display: inline-block;
+      background: #fff;
+      color: #3d95ce;
       font-weight: 900;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      letter-spacing: -0.01em;
     }
 
     /* ── Checkout Modal ── */
@@ -394,16 +403,13 @@
       align-items: center;
       justify-content: center;
     }
-
-    #checkout-modal.open {
-      display: flex;
-    }
+    #checkout-modal.open { display: flex; }
 
     .modal-box {
-      background: #fff;
+      background: var(--card-bg);
       border-radius: 16px;
-      width: 96%;
-      max-width: 460px;
+      width: 94%;
+      max-width: 440px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.22);
       overflow: hidden;
     }
@@ -411,8 +417,8 @@
     .modal-header {
       background: var(--primary);
       color: #fff;
-      padding: 1.1rem 1.4rem;
-      font-size: 1.1rem;
+      padding: 1rem 1.25rem;
+      font-size: 1.05rem;
       font-weight: 700;
       display: flex;
       justify-content: space-between;
@@ -426,81 +432,57 @@
       font-size: 1.4rem;
       cursor: pointer;
     }
-
     #close-modal:hover { color: var(--accent); }
 
-    .modal-body {
-      padding: 1.4rem;
-    }
+    .modal-body { padding: 1.25rem; }
 
     .order-summary-list {
       list-style: none;
       margin-bottom: 0.75rem;
     }
-
     .order-summary-list li {
       display: flex;
       justify-content: space-between;
       padding: 0.35rem 0;
+      border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
-      border-bottom: 1px solid var(--bg);
-      color: var(--text);
     }
+    .order-summary-list li:last-child { border-bottom: none; }
 
     .order-total-row {
       display: flex;
       justify-content: space-between;
       font-weight: 700;
       font-size: 1.05rem;
-      color: var(--primary);
+      margin: 0.75rem 0;
       padding-top: 0.5rem;
-      margin-bottom: 1.2rem;
+      border-top: 2px solid var(--primary);
     }
 
-    /* Venmo account highlight */
     .venmo-account-box {
-      background: #eaf5ff;
-      border: 2px solid #3d95ce;
+      background: #e8f4fd;
+      border: 1.5px solid #3d95ce;
       border-radius: 10px;
-      padding: 1rem 1.1rem;
-      margin-bottom: 1.2rem;
+      padding: 0.85rem 1rem;
+      margin: 0.85rem 0;
+      text-align: center;
     }
-
-    .venmo-account-box .v-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #3d95ce;
-      margin-bottom: 0.35rem;
-    }
-
-    .venmo-account-box .v-name {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .venmo-account-box .v-handle {
-      font-size: 0.92rem;
-      color: #3d95ce;
-      font-weight: 600;
-    }
+    .v-label { font-size: 0.75rem; font-weight: 600; color: #3d95ce; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+    .v-name  { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .v-handle { font-size: 0.9rem; color: #3d95ce; font-weight: 600; }
 
     .venmo-warning {
       background: #fff8e1;
       border: 1px solid var(--accent);
       border-radius: 8px;
-      padding: 0.6rem 0.85rem;
+      padding: 0.6rem 0.8rem;
       font-size: 0.82rem;
-      color: #7a5200;
-      margin-bottom: 1.2rem;
+      color: #7a5a00;
       display: flex;
-      gap: 0.4rem;
+      gap: 0.5rem;
       align-items: flex-start;
+      margin-bottom: 1rem;
     }
-
-    .venmo-warning span:first-child { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
 
     .modal-actions {
       display: flex;
@@ -509,22 +491,21 @@
 
     #cancel-checkout {
       flex: 1;
-      padding: 0.75rem;
+      padding: 0.7rem;
       background: var(--bg);
-      border: 1px solid var(--border);
+      color: var(--text-light);
+      border: 1.5px solid var(--border);
       border-radius: 8px;
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      color: var(--text);
       transition: background 0.12s;
     }
-
     #cancel-checkout:hover { background: var(--border); }
 
     #open-venmo-btn {
       flex: 2;
-      padding: 0.75rem;
+      padding: 0.7rem;
       background: #3d95ce;
       color: #fff;
       border: none;
@@ -532,94 +513,9 @@
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
       transition: filter 0.12s;
     }
-
     #open-venmo-btn:hover { filter: brightness(1.08); }
-
-    /* ── Toast ── */
-    #toast {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--primary);
-      color: #fff;
-      padding: 0.65rem 1.25rem;
-      border-radius: 24px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: var(--shadow);
-      z-index: 400;
-      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
-    /* ── Responsive / Mobile ── */
-
-    /* Tablets and larger phones (≤768px) */
-    @media (max-width: 768px) {
-      main { padding: 1.25rem 1rem; }
-
-      .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 0.75rem;
-      }
-
-      .modal-box { width: 98%; }
-
-      .modal-actions { flex-direction: column; }
-      #cancel-checkout, #open-venmo-btn { flex: none; width: 100%; }
-    }
-
-    /* Phones (≤500px) */
-    @media (max-width: 500px) {
-      header { padding: 0 0.75rem; height: 56px; }
-      .logo { font-size: 1.05rem; gap: 0.4rem; }
-      .logo-icon { font-size: 1.3rem; }
-
-      #cart-btn { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
-      #qr-btn   { padding: 0.4rem 0.6rem;  font-size: 0.85rem; }
-
-      main { padding: 1rem 0.75rem; }
-
-      #cart-drawer { width: 100vw; }
-
-      .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 0.6rem;
-      }
-
-      .product-card { padding: 0.75rem 0.6rem; }
-
-      /* Larger touch targets for qty buttons */
-      .qty-btn  { width: 34px; height: 34px; }
-      .cqty-btn { width: 32px; height: 32px; }
-
-      .cart-footer { padding: 0.75rem 1rem; }
-
-      .modal-body { padding: 1rem; }
-    }
-
-    /* Very small phones (≤380px) — hide button text, keep icons */
-    @media (max-width: 380px) {
-      .btn-text { display: none; }
-
-      #cart-btn { padding: 0.45rem 0.6rem; }
-      #qr-btn   { padding: 0.45rem 0.6rem; }
-
-      .logo { font-size: 0.95rem; }
-    }
 
     /* ── QR Code button ── */
     #qr-btn {
@@ -637,6 +533,24 @@
       transition: background 0.15s;
     }
     #qr-btn:hover { background: rgba(255,255,255,0.28); }
+
+    /* ── Admin link button ── */
+    #admin-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: background 0.15s;
+    }
+    #admin-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
 
     /* ── QR Code Modal ── */
     #qr-modal {
@@ -670,13 +584,7 @@
       align-items: center;
     }
 
-    #close-qr {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.4rem;
-      cursor: pointer;
-    }
+    #close-qr { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; }
     #close-qr:hover { color: var(--accent); }
 
     .qr-body {
@@ -717,22 +625,26 @@
     }
     #print-qr-btn:hover { filter: brightness(1.12); }
 
-    /* ── Cart item image ── */
-    .cart-item-img {
-      width: 2rem;
-      height: 2rem;
-      object-fit: cover;
-      border-radius: 4px;
-      flex-shrink: 0;
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--primary);
+      color: #fff;
+      padding: 0.65rem 1.25rem;
+      border-radius: 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      z-index: 500;
+      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
     }
-
-    /* ── Product image ── */
-    .product-img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
     /* ── Print styles ── */
     @media print {
@@ -749,6 +661,39 @@
       #print-area h1 { font-size: 2rem; color: #1a3a5c; }
       #print-area p  { font-size: 1rem; color: #444; }
     }
+
+    /* ── Responsive / Mobile ── */
+    @media (max-width: 768px) {
+      main { padding: 1.25rem 1rem; }
+      .product-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+      .modal-box { width: 98%; }
+      .modal-actions { flex-direction: column; }
+      #cancel-checkout, #open-venmo-btn { flex: none; width: 100%; }
+    }
+
+    @media (max-width: 500px) {
+      header { padding: 0 0.75rem; height: 56px; }
+      .logo { font-size: 1.05rem; gap: 0.4rem; }
+      .logo-icon { font-size: 1.3rem; }
+      #cart-btn { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+      #qr-btn   { padding: 0.4rem 0.6rem;  font-size: 0.85rem; }
+      main { padding: 1rem 0.75rem; }
+      #cart-drawer { width: 100vw; }
+      .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
+      .product-card { padding: 0.75rem 0.6rem; }
+      .qty-btn  { width: 34px; height: 34px; }
+      .cqty-btn { width: 32px; height: 32px; }
+      .cart-footer { padding: 0.75rem 1rem; }
+      .modal-body { padding: 1rem; }
+    }
+
+    @media (max-width: 380px) {
+      .btn-text { display: none; }
+      #cart-btn { padding: 0.45rem 0.6rem; }
+      #qr-btn   { padding: 0.45rem 0.6rem; }
+      #admin-btn .btn-text { display: none; }
+      .logo { font-size: 0.95rem; }
+    }
   </style>
 </head>
 <body>
@@ -760,6 +705,7 @@
     NNBC Snack Bar
   </div>
   <div style="display:flex;gap:0.5rem;align-items:center;">
+    <a href="admin.html" id="admin-btn" aria-label="Admin panel">⚙️ <span class="btn-text">Admin</span></a>
     <button id="qr-btn" aria-label="Show QR code">
       📷 <span class="btn-text">QR Code</span>
     </button>
@@ -773,11 +719,7 @@
 <!-- ══════════════════════ MAIN ══════════════════════ -->
 <main>
   <h2 class="section-title">Menu</h2>
-
-  <!-- Category tabs -->
   <div class="tabs" id="tabs"></div>
-
-  <!-- Product grid -->
   <div class="product-grid" id="product-grid"></div>
 </main>
 
@@ -809,20 +751,16 @@
     </div>
     <div class="modal-body">
       <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.75rem;">Review your order before opening Venmo.</p>
-
       <ul class="order-summary-list" id="modal-order-list"></ul>
       <div class="order-total-row">
         <span>Total Due</span>
         <span id="modal-total"></span>
       </div>
-
-      <!-- Venmo account info -->
       <div class="venmo-account-box">
         <div class="v-label">Pay this Venmo account</div>
         <div class="v-name" id="venmo-display-name"></div>
         <div class="v-handle" id="venmo-handle"></div>
       </div>
-
       <div class="venmo-warning">
         <span>⚠️</span>
         <span>
@@ -830,12 +768,9 @@
           <strong>@handle</strong> shown above matches before confirming payment.
         </span>
       </div>
-
       <div class="modal-actions">
         <button id="cancel-checkout">Cancel</button>
-        <button id="open-venmo-btn">
-          Open Venmo <span style="font-size:1.1em">→</span>
-        </button>
+        <button id="open-venmo-btn">Open Venmo <span style="font-size:1.1em">→</span></button>
       </div>
     </div>
   </div>
@@ -872,41 +807,61 @@
 <!-- ══════════════════════ SCRIPT ══════════════════════ -->
 <script>
   // ─────────────────────────────────────────────────────
-  //  CONFIGURATION — update items, prices and Venmo info
+  //  CONFIGURATION — Venmo info
   // ─────────────────────────────────────────────────────
-  const VENMO_USERNAME   = "NNBoosterClub";   // @handle (no @)
-  const VENMO_DISPLAY    = "Northern Neck Booster Club";  // Display name shown to user
-
-  const DEFAULT_PRODUCTS = [
-    // { id, name, emoji, price, category, imageUrl, inStock }
-    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snacks", imageUrl: null, inStock: true },
-    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drinks", imageUrl: null, inStock: true },
-    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
-    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Food",   imageUrl: null, inStock: true },
-  ];
+  const VENMO_USERNAME = "NNBoosterClub";         // @handle (no @)
+  const VENMO_DISPLAY  = "Northern Neck Booster Club";
 
   const STORAGE_KEY = "nnbc_products";
 
+  const DEFAULT_PRODUCTS = [
+    // { id, name, emoji, price, category, imageUrl, stock }
+    // stock: null = not tracked (unlimited); 0 = out of stock; N = N units available
+    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, stock: null },
+    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snack", imageUrl: null, stock: null },
+    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, stock: null },
+    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drink", imageUrl: null, stock: null },
+    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drink", imageUrl: null, stock: null },
+    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drink", imageUrl: null, stock: null },
+    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drink", imageUrl: null, stock: null },
+    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drink", imageUrl: null, stock: null },
+    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drink", imageUrl: null, stock: null },
+    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Meal",  imageUrl: null, stock: null },
+    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
+    { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
+    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
+  ];
+
+  // ─────────────────────────────────────────────────────
+  //  PRODUCT STORAGE
+  // ─────────────────────────────────────────────────────
   function loadProducts() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Back-compat: convert old boolean inStock to stock field
+        return parsed.map(p => {
+          if (!('stock' in p)) {
+            p.stock = (p.inStock === false) ? 0 : null;
+            delete p.inStock;
+          }
+          return p;
+        });
+      }
+    } catch (e) {
+      console.warn("Failed to load products:", e);
+    }
     return structuredClone(DEFAULT_PRODUCTS);
+  }
+
+  function saveProducts(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
   let products = loadProducts();
@@ -929,6 +884,20 @@
     t.classList.add("show");
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // Validate data URL is a safe image before rendering
+  function safeImageUrl(url) {
+    return (typeof url === "string" && url.startsWith("data:image/")) ? url : null;
   }
 
   // ─────────────────────────────────────────────────────
@@ -964,34 +933,43 @@
       : products.filter(p => p.category === activeCategory);
 
     filtered.forEach(p => {
-      const outOfStock = p.inStock === false;
+      // Out of stock if stock is exactly 0 (null = unlimited = in stock)
+      const outOfStock = p.stock === 0;
       const qty = cart[p.id] || 0;
+
       const card = document.createElement("div");
       card.className = "product-card" + (outOfStock ? " out-of-stock" : "");
       card.dataset.id = p.id;
 
       // Visual: image takes priority over emoji
-      const visual = document.createElement(p.imageUrl ? "img" : "div");
-      if (p.imageUrl) {
+      const imgUrl = safeImageUrl(p.imageUrl);
+      const visual = document.createElement(imgUrl ? "img" : "div");
+      if (imgUrl) {
         visual.className = "product-img";
         visual.alt = p.name;
-        visual.src = p.imageUrl;
+        visual.src = imgUrl;
       } else {
         visual.className = "product-emoji";
         visual.textContent = p.emoji || "🛍️";
       }
       card.appendChild(visual);
 
+      // Low stock badge (show when stock is tracked and ≤ 5 but > 0)
+      const lowStockBadge = (p.stock !== null && p.stock > 0 && p.stock <= 5)
+        ? `<div class="stock-badge low">Only ${p.stock} left!</div>`
+        : "";
+
       card.insertAdjacentHTML("beforeend", `
         <div class="product-name">${escHtml(p.name)}</div>
         <div class="product-price">${formatPrice(p.price)}</div>
+        ${lowStockBadge}
         <div class="qty-control">
           <button class="qty-btn" data-action="dec" aria-label="Decrease quantity" ${outOfStock ? 'disabled' : ''}>−</button>
           <span class="qty-display" id="qty-${p.id}">${qty}</span>
           <button class="qty-btn" data-action="inc" aria-label="Increase quantity" ${outOfStock ? 'disabled' : ''}>+</button>
         </div>
         <button class="add-btn" ${qty === 0 || outOfStock ? 'disabled' : ''} data-id="${p.id}">
-          ${outOfStock ? 'Out of stock' : qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
+          ${outOfStock ? 'Out of Stock' : qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
         </button>`);
 
       // Qty controls
@@ -1000,7 +978,11 @@
           if (outOfStock) return;
           const action = btn.dataset.action;
           const cur = parseInt(getById("qty-" + p.id).textContent, 10);
-          const next = action === "inc" ? cur + 1 : Math.max(0, cur - 1);
+          // Don't allow adding more than stock allows
+          const maxQty = (p.stock !== null) ? p.stock : Infinity;
+          const next = action === "inc"
+            ? Math.min(cur + 1, maxQty)
+            : Math.max(0, cur - 1);
           getById("qty-" + p.id).textContent = next;
           const addBtn = card.querySelector(".add-btn");
           addBtn.disabled = next === 0;
@@ -1011,7 +993,7 @@
       // Add to cart
       card.querySelector(".add-btn").addEventListener("click", () => {
         const qty = parseInt(getById("qty-" + p.id).textContent, 10);
-        if (qty > 0) {
+        if (qty > 0 && !outOfStock) {
           cart[p.id] = (cart[p.id] || 0) + qty;
           getById("qty-" + p.id).textContent = 0;
           card.querySelector(".add-btn").disabled = true;
@@ -1044,11 +1026,8 @@
     const badge = getById("cart-badge");
     badge.textContent = count;
     badge.style.display = count > 0 ? "flex" : "none";
-
-    const total = cartTotal();
-    getById("cart-total").textContent = formatPrice(total);
+    getById("cart-total").textContent = formatPrice(cartTotal());
     getById("checkout-btn").disabled = count === 0;
-
     renderCartItems();
   }
 
@@ -1072,12 +1051,12 @@
       const row = document.createElement("div");
       row.className = "cart-item";
 
-      // Visual: image or emoji in cart
-      const visual = document.createElement(p.imageUrl ? "img" : "div");
-      if (p.imageUrl) {
+      const imgUrl = safeImageUrl(p.imageUrl);
+      const visual = document.createElement(imgUrl ? "img" : "div");
+      if (imgUrl) {
         visual.className = "cart-item-img";
         visual.alt = p.name;
-        visual.src = p.imageUrl;
+        visual.src = imgUrl;
       } else {
         visual.className = "cart-item-emoji";
         visual.textContent = p.emoji || "🛍️";
@@ -1139,21 +1118,19 @@
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     const total   = cartTotal();
 
-    // Build order list for modal
     const list = getById("modal-order-list");
     list.innerHTML = "";
     entries.forEach(([id, qty]) => {
       const p = products.find(p => p.id === +id);
       if (!p) return;
       const li = document.createElement("li");
-      li.innerHTML = `<span>${p.emoji || ''} ${qty}× ${escHtml(p.name)}</span><span>${formatPrice(p.price * qty)}</span>`;
+      li.innerHTML = `<span>${p.emoji || '🛍️'} ${qty}× ${escHtml(p.name)}</span><span>${formatPrice(p.price * qty)}</span>`;
       list.appendChild(li);
     });
 
-    getById("modal-total").textContent   = formatPrice(total);
+    getById("modal-total").textContent       = formatPrice(total);
     getById("venmo-display-name").textContent = VENMO_DISPLAY;
-    getById("venmo-handle").textContent  = "@" + VENMO_USERNAME;
-
+    getById("venmo-handle").textContent       = "@" + VENMO_USERNAME;
     getById("checkout-modal").classList.add("open");
   }
 
@@ -1164,55 +1141,52 @@
   getById("checkout-btn").addEventListener("click", () => { closeCart(); openCheckout(); });
   getById("close-modal").addEventListener("click", closeCheckout);
   getById("cancel-checkout").addEventListener("click", closeCheckout);
-  getById("checkout-modal").addEventListener("click", e => { if (e.target === getById("checkout-modal")) closeCheckout(); });
+  getById("checkout-modal").addEventListener("click", e => {
+    if (e.target === getById("checkout-modal")) closeCheckout();
+  });
 
   // ─────────────────────────────────────────────────────
-  //  VENMO DEEP LINK
+  //  VENMO DEEP LINK + STOCK DECREMENT
   // ─────────────────────────────────────────────────────
   getById("open-venmo-btn").addEventListener("click", () => {
     const total = cartTotal();
-    const note  = buildNote();
 
-    // Venmo deep link – opens the app if installed, else falls back to web
-    const params = new URLSearchParams({
-      txn:       "pay",
-      audience:  "private",
-      recipients: VENMO_USERNAME,
-      amount:    total.toFixed(2),
-      note:      note,
-    });
-    const venmoUrl = "https://venmo.com/?" + params.toString();
-    window.open(venmoUrl, "_blank", "noopener,noreferrer");
-
-    closeCheckout();
-    // Clear cart after opening Venmo
-    Object.keys(cart).forEach(k => delete cart[k]);
-    updateCartUI();
-    showToast("Thanks! Complete payment in Venmo 🎉");
-  });
-
-  function buildNote() {
-    const parts = Object.entries(cart)
+    // Build note
+    const noteParts = Object.entries(cart)
       .filter(([,q]) => q > 0)
       .map(([id, qty]) => {
         const p = products.find(p => p.id === +id);
         return p ? `${qty}x ${p.name}` : "";
       })
       .filter(Boolean);
-    return "NNBC Snack Bar: " + parts.join(", ");
-  }
+    const note = "NNBC Snack Bar: " + noteParts.join(", ");
 
-  // ─────────────────────────────────────────────────────
-  //  SECURITY HELPER – prevent XSS
-  // ─────────────────────────────────────────────────────
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+    // Decrement stock for tracked items (use in-memory list to avoid reading stale data)
+    Object.entries(cart).forEach(([id, qty]) => {
+      const item = products.find(p => p.id === +id);
+      if (item && item.stock !== null && item.stock !== undefined) {
+        item.stock = Math.max(0, item.stock - qty);
+      }
+    });
+    saveProducts(products);
+
+    const params = new URLSearchParams({
+      txn:        "pay",
+      audience:   "private",
+      recipients: VENMO_USERNAME,
+      amount:     total.toFixed(2),
+      note:       note,
+    });
+    window.open("https://venmo.com/?" + params.toString(), "_blank", "noopener,noreferrer");
+
+    closeCheckout();
+    Object.keys(cart).forEach(k => delete cart[k]);
+    updateCartUI();
+    // Re-render products to reflect stock changes (e.g., newly out-of-stock items)
+    buildTabs();
+    renderProducts();
+    showToast("Thanks! Complete payment in Venmo 🎉");
+  });
 
   // ─────────────────────────────────────────────────────
   //  QR CODE
@@ -1220,8 +1194,7 @@
   function renderQR(canvasId) {
     const url = window.location.href;
     QRCode.toCanvas(document.getElementById(canvasId), url, {
-      width: 240,
-      margin: 1,
+      width: 240, margin: 1,
       color: { dark: "#1a3a5c", light: "#ffffff" },
     }, err => { if (err) console.error("QR generation failed:", err); });
     return url;
@@ -1245,17 +1218,14 @@
 
   getById("print-qr-btn").addEventListener("click", () => {
     const url = window.location.href;
-    // Render a larger version into the print canvas
     QRCode.toCanvas(document.getElementById("print-qr-canvas"), url, {
-      width: 320,
-      margin: 2,
+      width: 320, margin: 2,
       color: { dark: "#1a3a5c", light: "#ffffff" },
     }, err => {
       if (err) { console.error("QR print generation failed:", err); return; }
       getById("print-url-text").textContent = url;
       getById("print-area").style.display = "flex";
       window.print();
-      // Hide print area again after printing dialog closes
       setTimeout(() => { getById("print-area").style.display = "none"; }, 500);
     });
   });
