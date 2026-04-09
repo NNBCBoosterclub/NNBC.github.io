@@ -536,6 +536,8 @@
       .product-row { flex-wrap: wrap; }
       .row-actions { order: 3; }
       .stock-section { order: 2; }
+      .row-name { font-size: 1rem; }
+      .row-meta { font-size: 0.82rem; }
     }
 
     @media (max-width: 500px) {
@@ -543,6 +545,15 @@
       .header-logo { font-size: 1rem; }
       .admin-main { padding: 1rem 0.75rem; }
       .link-text { display: none; }
+      .card { padding: 1rem; }
+      .form-group label { font-size: 0.88rem; }
+      .form-group input[type="text"],
+      .form-group input[type="number"],
+      .form-group select { font-size: 1rem; padding: 0.7rem 0.8rem; }
+      .btn-save, .btn-cancel { font-size: 1rem; padding: 0.75rem 1.1rem; }
+      .btn-edit, .btn-delete { padding: 0.45rem 0.85rem; font-size: 0.85rem; }
+      .row-visual { width: 40px; height: 40px; font-size: 1.4rem; }
+      .section-title { font-size: 1.1rem; }
     }
   </style>
 </head>
@@ -615,6 +626,12 @@
               <option value="Other">Other</option>
             </select>
           </div>
+          <div class="form-group" id="f-subcategory-group" style="display:none">
+            <label for="f-subcategory">Subcategory</label>
+            <select id="f-subcategory">
+              <option value="">— Select subcategory —</option>
+            </select>
+          </div>
           <div class="form-group">
             <label for="f-emoji">Emoji (optional)</label>
             <input type="text" id="f-emoji" placeholder="🥔" maxlength="4" />
@@ -685,26 +702,31 @@
   const IMAGE_QUALITY  = 0.82;
   const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
 
+  const SUBCATEGORIES = {
+    "Drink": ["Energy Drink", "Soda", "Other"],
+    "Snack": ["Protein", "Health", "Savory", "Sweet"]
+  };
+
   const DEFAULT_PRODUCTS = [
     // stock: null = unlimited/not tracked; 0 = out of stock; N = N units
-    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, stock: null },
-    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snack", imageUrl: null, stock: null },
-    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snack", imageUrl: null, stock: null },
-    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drink", imageUrl: null, stock: null },
-    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drink", imageUrl: null, stock: null },
-    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drink", imageUrl: null, stock: null },
-    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drink", imageUrl: null, stock: null },
-    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drink", imageUrl: null, stock: null },
-    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drink", imageUrl: null, stock: null },
-    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Meal",  imageUrl: null, stock: null },
-    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
-    { id: 17, name: "Nachos",           emoji: "��", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
-    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Meal",  imageUrl: null, stock: null },
+    { id: 1,  name: "Chips",            emoji: "🥔", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null },
+    { id: 2,  name: "Pretzels",         emoji: "🥨", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null },
+    { id: 3,  name: "Granola Bar",      emoji: "🍫", price: 1.50, category: "Snack", subcategory: "Health",  imageUrl: null, stock: null },
+    { id: 4,  name: "Cookies",          emoji: "🍪", price: 1.00, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null },
+    { id: 5,  name: "Crackers",         emoji: "🫙", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null },
+    { id: 6,  name: "Fruit Snacks",     emoji: "🍬", price: 1.00, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null },
+    { id: 7,  name: "Popcorn",          emoji: "🍿", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null },
+    { id: 8,  name: "Candy Bar",        emoji: "🍫", price: 1.50, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null },
+    { id: 9,  name: "Water",            emoji: "💧", price: 1.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null },
+    { id: 10, name: "Sports Drink",     emoji: "🥤", price: 2.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null },
+    { id: 11, name: "Juice Box",        emoji: "🧃", price: 1.50, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null },
+    { id: 12, name: "Soda",             emoji: "🥤", price: 1.50, category: "Drink", subcategory: "Soda",    imageUrl: null, stock: null },
+    { id: 13, name: "Hot Chocolate",    emoji: "☕", price: 2.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null },
+    { id: 14, name: "Coffee",           emoji: "☕", price: 1.50, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null },
+    { id: 15, name: "Sandwich",         emoji: "🥪", price: 4.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
+    { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
+    { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
+    { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
   ];
 
   // ─────────────────────────────────────────────────────
@@ -832,6 +854,8 @@
             p.stock = (p.inStock === false) ? 0 : null;
             delete p.inStock;
           }
+          // Back-compat: ensure subcategory field exists
+          if (!('subcategory' in p)) p.subcategory = null;
           return p;
         });
       }
@@ -968,6 +992,28 @@
   }
 
   // ─────────────────────────────────────────────────────
+  //  SUBCATEGORY FIELD
+  // ─────────────────────────────────────────────────────
+  function updateSubcategoryField(category, currentValue) {
+    const group  = $("f-subcategory-group");
+    const select = $("f-subcategory");
+    const subs   = SUBCATEGORIES[category];
+
+    if (subs) {
+      select.innerHTML = `<option value="">— Select subcategory —</option>` +
+        subs.map(s => `<option value="${escHtml(s)}"${s === currentValue ? " selected" : ""}>${escHtml(s)}</option>`).join("");
+      group.style.display = "";
+    } else {
+      select.innerHTML = "";
+      group.style.display = "none";
+    }
+  }
+
+  $("f-category").addEventListener("change", () => {
+    updateSubcategoryField($("f-category").value, "");
+  });
+
+  // ─────────────────────────────────────────────────────
   //  ADD / EDIT FORM
   // ─────────────────────────────────────────────────────
   function resetForm() {
@@ -978,6 +1024,8 @@
     $("cancel-edit-btn").style.display = "none";
     setStockField(null);
     resetImageField(null);
+    $("f-subcategory-group").style.display = "none";
+    $("f-subcategory").innerHTML = "";
   }
 
   function startEdit(id) {
@@ -992,6 +1040,7 @@
     $("f-emoji").value    = p.emoji || "";
     setStockField(p.stock !== undefined ? p.stock : null);
     resetImageField(p.imageUrl || null);
+    updateSubcategoryField(p.category, p.subcategory || "");
 
     $("form-heading").textContent      = "✏️ Edit Item";
     $("form-submit-btn").textContent   = "Save Changes";
@@ -1005,12 +1054,13 @@
   $("item-form").addEventListener("submit", e => {
     e.preventDefault();
 
-    const name     = $("f-name").value.trim();
-    const price    = parseFloat($("f-price").value);
-    const category = $("f-category").value.trim();
-    const emoji    = $("f-emoji").value.trim();
-    const stock    = getStockFieldValue();
-    const editId   = $("edit-id").value;
+    const name        = $("f-name").value.trim();
+    const price       = parseFloat($("f-price").value);
+    const category    = $("f-category").value.trim();
+    const emoji       = $("f-emoji").value.trim();
+    const stock       = getStockFieldValue();
+    const editId      = $("edit-id").value;
+    const subcategory = SUBCATEGORIES[category] ? ($("f-subcategory").value || null) : null;
 
     if (!name || isNaN(price) || price < 0 || !category) {
       showToast("Please fill in all required fields.", true);
@@ -1027,12 +1077,12 @@
       if (pendingImageUrl === "")        imageUrl = null;
       else if (pendingImageUrl !== null)  imageUrl = pendingImageUrl;
 
-      list[idx] = { ...list[idx], name, price, category, emoji, imageUrl, stock };
+      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, imageUrl, stock };
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
       const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
-      list.push({ id: nextId(list), name, price, category, emoji, imageUrl, stock });
+      list.push({ id: nextId(list), name, price, category, subcategory, emoji, imageUrl, stock });
       saveProducts(list);
       showToast(`✅ "${name}" added to menu.`);
     }
@@ -1086,9 +1136,12 @@
         // Info
         const info = document.createElement("div");
         info.className = "row-info";
+        const subcatBadge = p.subcategory
+          ? ` &nbsp;·&nbsp; <span class="cat-badge" style="background:rgba(232,160,32,0.15);color:#8a5e00;">${escHtml(p.subcategory)}</span>`
+          : "";
         info.innerHTML = `
           <div class="row-name">${escHtml(p.name)}</div>
-          <div class="row-meta">$${p.price.toFixed(2)} &nbsp;·&nbsp; <span class="cat-badge">${escHtml(p.category)}</span></div>`;
+          <div class="row-meta">$${p.price.toFixed(2)} &nbsp;·&nbsp; <span class="cat-badge">${escHtml(p.category)}</span>${subcatBadge}</div>`;
         row.appendChild(info);
 
         // Stock section (badge + restock button)
