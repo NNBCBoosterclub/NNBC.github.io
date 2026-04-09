@@ -1031,6 +1031,11 @@
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
+      const duplicate = list.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
+      if (duplicate) {
+        showToast(`⚠️ "${name}" is already on the menu.`, true);
+        return;
+      }
       const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
       list.push({ id: nextId(list), name, price, category, emoji, imageUrl, stock });
       saveProducts(list);
