@@ -38,7 +38,7 @@ When you open `admin.html` for the first time you'll be prompted to **create a P
 | Action | How |
 |---|---|
 | **Add a new item** | Fill in the form at the top and click **Add Item** |
-| **Upload a product photo** | Use the photo field in the form (max 2 MB — resized automatically) |
+| **Upload a product photo** | Use the photo field in the form (max 10 MB — resized automatically) |
 | **Edit an item** | Click **✏️ Edit** next to any item |
 | **Delete an item** | Click **🗑 Delete** next to any item |
 | **Set starting stock** | Enter a number in the "Starting Stock" field, or check **Unlimited** |
