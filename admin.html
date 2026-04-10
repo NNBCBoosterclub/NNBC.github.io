@@ -505,6 +505,152 @@
     }
     .btn-danger:hover { filter: brightness(1.1); }
 
+    /* ── Orders section ── */
+    .orders-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    .orders-stats {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+    .stat-chip strong { color: var(--text); font-size: 1rem; }
+
+    .filter-btn {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      color: var(--text-light);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-clear-orders {
+      margin-left: auto;
+      padding: 0.35rem 0.75rem;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-clear-orders:hover { background: var(--danger); color: #fff; }
+
+    .order-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: var(--shadow);
+    }
+    .order-card.cash-pending { border-left-color: #ffc107; }
+    .order-card.cash-paid    { border-left-color: var(--success); }
+    .order-card.venmo        { border-left-color: #3d95ce; }
+
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.4rem;
+    }
+    .order-buyer { font-weight: 700; color: var(--text); font-size: 0.9rem; flex: 1; }
+    .order-time  { font-size: 0.78rem; color: var(--text-light); }
+
+    .order-method-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+    .order-method-badge.venmo { background: #e8f4fd; color: #3d95ce; }
+    .order-method-badge.cash  { background: #e8fdf0; color: var(--success); }
+
+    .order-status-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+    .order-status-badge.pending { background: #fff8e1; color: #b7770a; }
+    .order-status-badge.paid    { background: var(--success-bg); color: var(--success); }
+
+    .order-items { font-size: 0.82rem; color: var(--text-light); margin-bottom: 0.4rem; }
+
+    .order-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .order-id    { font-size: 0.75rem; color: var(--text-light); font-family: monospace; }
+    .order-total { font-weight: 700; font-size: 0.95rem; color: var(--primary); }
+    .order-actions { display: flex; gap: 0.4rem; }
+
+    .btn-mark-paid {
+      padding: 0.3rem 0.7rem;
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-mark-paid:hover { background: var(--success); color: #fff; }
+
+    .btn-del-order {
+      padding: 0.3rem 0.6rem;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-del-order:hover { background: var(--danger); color: #fff; }
+
+    .orders-empty {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
     /* ── Toast ── */
     #toast {
       position: fixed;
@@ -649,6 +795,23 @@
     <h2 class="section-title">📋 Current Menu</h2>
     <div id="product-list"></div>
 
+    <!-- ── Orders ── -->
+    <h2 class="section-title" style="margin-top:2rem">📊 Order History</h2>
+    <div class="card">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem;">
+        Orders placed via this device are recorded here. Cash orders can be marked as paid once collected.
+      </p>
+      <div class="orders-stats" id="orders-stats"></div>
+      <div class="orders-toolbar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="cash">💵 Cash</button>
+        <button class="filter-btn" data-filter="venmo">Venmo</button>
+        <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+        <button class="btn-clear-orders" id="clear-orders-btn">🗑 Clear History</button>
+      </div>
+      <div id="order-list"></div>
+    </div>
+
     <!-- ── Settings ── -->
     <h2 class="section-title" style="margin-top:2rem">⚙️ Settings</h2>
     <div class="card">
@@ -772,6 +935,7 @@
     } else {
       $("admin-panel").style.display = "block";
       renderProductList();
+      renderOrders();
     }
   }
 
@@ -1212,6 +1376,125 @@
     showToast("Menu reset to defaults.");
     renderProductList();
     resetForm();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  ORDERS
+  // ─────────────────────────────────────────────────────
+  const ORDERS_KEY = "nnbc_orders";
+
+  function loadOrders() {
+    try {
+      const s = localStorage.getItem(ORDERS_KEY);
+      return s ? JSON.parse(s) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveOrders(orders) {
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  }
+
+  let activeOrderFilter = "all";
+
+  function renderOrders() {
+    const all       = loadOrders();
+    const statsEl   = $("orders-stats");
+    const container = $("order-list");
+
+    // Stats
+    const paid        = all.filter(o => o.status === "paid");
+    const pendingList = all.filter(o => o.status === "pending");
+    const totalRev    = paid.reduce((s, o) => s + o.total, 0);
+    const pendingAmt  = pendingList.reduce((s, o) => s + o.total, 0);
+    statsEl.innerHTML = `
+      <div class="stat-chip">Orders: <strong>${all.length}</strong></div>
+      <div class="stat-chip">Collected: <strong>$${totalRev.toFixed(2)}</strong></div>
+      <div class="stat-chip">Pending Cash: <strong>${pendingList.length} ($${pendingAmt.toFixed(2)})</strong></div>`;
+
+    // Filter
+    let filtered = all;
+    if (activeOrderFilter === "cash")    filtered = all.filter(o => o.method === "cash");
+    if (activeOrderFilter === "venmo")   filtered = all.filter(o => o.method === "venmo");
+    if (activeOrderFilter === "pending") filtered = all.filter(o => o.status === "pending");
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="orders-empty">No orders found. Orders appear here after customers check out on this device.</div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+    filtered.forEach(order => {
+      const date      = new Date(order.ts);
+      const timeStr   = date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const isPending = order.status === "pending";
+      const cardClass = order.method === "venmo" ? "venmo" : (isPending ? "cash-pending" : "cash-paid");
+      const itemsText = order.items.map(i => `${i.qty}× ${escHtml(i.name)}`).join(", ");
+
+      const methodBadge = order.method === "venmo"
+        ? `<span class="order-method-badge venmo">Venmo</span>`
+        : `<span class="order-method-badge cash">💵 Cash</span>`;
+      const statusBadge = isPending
+        ? `<span class="order-status-badge pending">⏳ Pending</span>`
+        : `<span class="order-status-badge paid">✓ Paid</span>`;
+
+      const div = document.createElement("div");
+      div.className = `order-card ${cardClass}`;
+      div.innerHTML = `
+        <div class="order-card-header">
+          <span class="order-buyer">👤 ${escHtml(order.buyerName)}</span>
+          ${methodBadge}
+          ${statusBadge}
+          <span class="order-time">${timeStr}</span>
+        </div>
+        <div class="order-items">${itemsText}</div>
+        <div class="order-card-footer">
+          <span class="order-id">${escHtml(order.id)}</span>
+          <span class="order-total">$${order.total.toFixed(2)}</span>
+          <div class="order-actions">
+            ${isPending ? `<button class="btn-mark-paid" type="button">✓ Mark Paid</button>` : ""}
+            <button class="btn-del-order" type="button" aria-label="Delete order">🗑</button>
+          </div>
+        </div>`;
+
+      div.querySelector(".btn-del-order").addEventListener("click", () => {
+        if (!confirm("Delete this order record?")) return;
+        saveOrders(loadOrders().filter(o => o.id !== order.id));
+        showToast("Order deleted.");
+        renderOrders();
+      });
+
+      if (isPending) {
+        div.querySelector(".btn-mark-paid").addEventListener("click", () => {
+          const orders = loadOrders();
+          const idx = orders.findIndex(o => o.id === order.id);
+          if (idx !== -1) {
+            orders[idx].status = "paid";
+            saveOrders(orders);
+            showToast("✅ Order marked as paid.");
+            renderOrders();
+          }
+        });
+      }
+
+      container.appendChild(div);
+    });
+  }
+
+  // Filter buttons
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeOrderFilter = btn.dataset.filter;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderOrders();
+    });
+  });
+
+  $("clear-orders-btn").addEventListener("click", () => {
+    if (!confirm("Clear all order history? This cannot be undone.")) return;
+    saveOrders([]);
+    showToast("Order history cleared.");
+    renderOrders();
   });
 
   // ─────────────────────────────────────────────────────
