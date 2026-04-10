@@ -727,6 +727,8 @@
     { id: 16, name: "Hot Dog",          emoji: "🌭", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
     { id: 17, name: "Nachos",           emoji: "🧀", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
     { id: 18, name: "Pizza Slice",      emoji: "🍕", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null },
+    { id: 19, name: "Spirit Wear",      emoji: "👕", price: 10.00, category: "Other", subcategory: null,     imageUrl: null, stock: null },
+    { id: 20, name: "Miscellaneous",    emoji: "🛍️", price: 1.00, category: "Other", subcategory: null,     imageUrl: null, stock: null },
   ];
 
   // ─────────────────────────────────────────────────────
@@ -1081,6 +1083,11 @@
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
+      const duplicate = list.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
+      if (duplicate) {
+        showToast(`⚠️ "${name}" is already on the menu.`, true);
+        return;
+      }
       const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
       list.push({ id: nextId(list), name, price, category, subcategory, emoji, imageUrl, stock });
       saveProducts(list);
