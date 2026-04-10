@@ -1077,9 +1077,11 @@
   const VENMO_USERNAME = "NNBoosterClub";         // @handle (no @)
   const VENMO_DISPLAY  = "Northern Neck Booster Club";
 
-  const STORAGE_KEY = "nnbc_products";
-  const USER_KEY    = "nnbc_user";
-  const ORDERS_KEY  = "nnbc_orders";
+  const STORAGE_KEY   = "nnbc_products";
+  const USER_KEY      = "nnbc_user";
+  const ORDERS_KEY    = "nnbc_orders";
+  const ORDER_SEQ_KEY = "nnbc_order_seq";
+  const GUEST_NAME    = "Guest";
 
   const DEFAULT_PRODUCTS = [
     // { id, name, emoji, price, category, imageUrl, stock }
@@ -1149,7 +1151,7 @@
 
   function getDisplayName() {
     const u = loadUser();
-    return (u && u.name) ? u.name : "Guest";
+    return (u && u.name) ? u.name : GUEST_NAME;
   }
 
   // ─────────────────────────────────────────────────────
@@ -1169,8 +1171,10 @@
   function logOrder(method) {
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     if (!entries.length) return null;
-    const id = "ORD-" + Date.now().toString(36).toUpperCase().slice(-5)
-      + "-" + Math.random().toString(36).slice(2, 5).toUpperCase();
+    // Use a persisted counter for collision-free sequential order IDs
+    const seq = (parseInt(localStorage.getItem(ORDER_SEQ_KEY), 10) || 0) + 1;
+    localStorage.setItem(ORDER_SEQ_KEY, seq);
+    const id = "ORD-" + String(seq).padStart(5, "0");
     const items = entries.map(([pid, qty]) => {
       const p = products.find(p => p.id === +pid);
       return p ? { id: p.id, name: p.name, qty, price: p.price } : null;
@@ -1480,8 +1484,7 @@
   //  NAME PROMPT MODAL
   // ─────────────────────────────────────────────────────
   function updateUserChip() {
-    const name = getDisplayName();
-    getById("user-chip-name").textContent = name;
+    getById("user-chip-name").textContent = getDisplayName();
   }
 
   function openNameModal() {
@@ -1500,7 +1503,7 @@
   function saveName() {
     const name = getById("name-input").value.trim();
     if (!name) { getById("name-input").focus(); return; }
-    const u = loadUser() || { id: Date.now().toString(36) };
+    const u = loadUser() || {};
     u.name = name;
     saveUser(u);
     updateUserChip();
@@ -1587,7 +1590,7 @@
         return p ? `${qty}x ${p.name}` : "";
       })
       .filter(Boolean);
-    const namePrefix = buyerName !== "Guest" ? buyerName + " - " : "";
+    const namePrefix = buyerName !== GUEST_NAME ? buyerName + " - " : "";
     const note = "NNBC Snack Bar: " + namePrefix + noteParts.join(", ");
 
     // Decrement stock for tracked items (use in-memory list to avoid reading stale data)
