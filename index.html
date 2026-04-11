@@ -1811,6 +1811,8 @@
         return;
       } catch (e) {
         if (e.name === "AbortError") return; // user cancelled native share sheet
+        console.error("Share failed:", e);
+        // fall through to modal on other errors
       }
     }
     openShareModal();
@@ -1829,7 +1831,12 @@
       const input = getById("share-url-input");
       input.select();
       input.setSelectionRange(0, 99999);
-      try { document.execCommand("copy"); } catch (_) {}
+      try {
+        const ok = document.execCommand("copy");
+        if (!ok) showToast("⚠️ Copy failed — select and copy manually");
+      } catch (_) {
+        showToast("⚠️ Copy failed — select and copy manually");
+      }
     };
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
