@@ -405,7 +405,7 @@
     #checkout-btn {
       width: 100%;
       padding: 0.85rem;
-      background: #3d95ce;
+      background: var(--primary);
       color: #fff;
       border: none;
       border-radius: 10px;
@@ -544,7 +544,7 @@
     #cancel-checkout:hover { background: var(--border); }
 
     #open-venmo-btn {
-      flex: 2;
+      flex: 1;
       padding: 0.7rem;
       background: #3d95ce;
       color: #fff;
@@ -702,20 +702,238 @@
       #print-area p  { font-size: 1rem; color: #444; }
     }
 
+    /* ── User chip (header) ── */
+    #user-chip {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: background 0.15s;
+      max-width: 130px;
+      overflow: hidden;
+    }
+    #user-chip:hover { background: rgba(255,255,255,0.22); color: #fff; }
+    #user-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Name Prompt Modal ── */
+    #name-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+    }
+    #name-modal.open { display: flex; }
+
+    .name-modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 92%;
+      max-width: 380px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    }
+    .name-modal-box .nm-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+    .name-modal-box h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 0.4rem; }
+    .name-modal-box p  { font-size: 0.88rem; color: var(--text-light); margin-bottom: 1.25rem; }
+    .name-modal-box input[type="text"] {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+    .name-modal-box input:focus { border-color: var(--primary); }
+    #save-name-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s;
+      margin-bottom: 0.5rem;
+    }
+    #save-name-btn:hover { filter: brightness(1.1); }
+    #skip-name-btn {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0.35rem;
+      text-decoration: underline;
+    }
+    #skip-name-btn:hover { color: var(--text); }
+
+    /* ── Buyer row in checkout modal ── */
+    .buyer-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.88rem;
+    }
+    .buyer-label { color: var(--text-light); flex-shrink: 0; }
+    .buyer-name  { font-weight: 700; color: var(--primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #change-name-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.15rem 0.3rem;
+      flex-shrink: 0;
+    }
+    #change-name-btn:hover { text-decoration: underline; }
+
+    /* ── Payment buttons (Venmo + Cash side by side) ── */
+    .payment-buttons {
+      flex: 2;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .payment-buttons > button { flex: 1; }
+
+    #pay-cash-btn {
+      padding: 0.7rem;
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.12s;
+    }
+    #pay-cash-btn:hover { filter: brightness(1.08); }
+
+    /* ── Cash Receipt Modal ── */
+    #cash-receipt-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 350;
+      align-items: center;
+      justify-content: center;
+    }
+    #cash-receipt-modal.open { display: flex; }
+
+    .receipt-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 94%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+    .receipt-header {
+      background: var(--success);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #close-cash-receipt { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; }
+    #close-cash-receipt:hover { opacity: 0.8; }
+
+    .receipt-body { padding: 1.25rem; }
+
+    .receipt-show-banner {
+      background: #fff3cd;
+      border: 1.5px solid #ffc107;
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #7a5a00;
+      margin-bottom: 1rem;
+    }
+    .receipt-meta {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+    .receipt-meta strong { color: var(--text); }
+
+    .receipt-items { list-style: none; margin-bottom: 0.75rem; }
+    .receipt-items li {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .receipt-items li:last-child { border-bottom: none; }
+
+    .receipt-total-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin: 0.75rem 0;
+      padding-top: 0.5rem;
+      border-top: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    #done-cash-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.12s;
+      margin-top: 0.5rem;
+    }
+    #done-cash-btn:hover { filter: brightness(1.1); }
+
     /* ── Responsive / Mobile ── */
     @media (max-width: 768px) {
       main { padding: 1.25rem 0.85rem; }
       .modal-box { width: 98%; }
       .modal-actions { flex-direction: column; }
-      #cancel-checkout, #open-venmo-btn { flex: none; width: 100%; }
+      #cancel-checkout { flex: none; width: 100%; }
+      .payment-buttons { width: 100%; }
     }
 
     @media (max-width: 500px) {
       header { padding: 0 0.75rem; height: 60px; }
       .logo { font-size: 1.1rem; gap: 0.4rem; }
       .logo-icon { font-size: 1.4rem; }
-      #cart-btn { padding: 0.5rem 0.85rem; font-size: 0.9rem; }
-      #qr-btn   { padding: 0.45rem 0.7rem;  font-size: 0.9rem; }
+      #cart-btn  { padding: 0.5rem 0.85rem; font-size: 0.9rem; }
+      #qr-btn    { padding: 0.45rem 0.7rem;  font-size: 0.9rem; }
+      #user-chip { padding: 0.35rem 0.55rem; }
       main { padding: 1rem 0.75rem; }
       #cart-drawer { width: 100vw; }
       .product-card { padding: 0.85rem 0.65rem; }
@@ -728,8 +946,9 @@
 
     @media (max-width: 380px) {
       .btn-text { display: none; }
-      #cart-btn { padding: 0.5rem 0.75rem; }
-      #qr-btn   { padding: 0.5rem 0.65rem; }
+      #cart-btn  { padding: 0.5rem 0.75rem; }
+      #qr-btn    { padding: 0.5rem 0.65rem; }
+      #user-chip { padding: 0.45rem 0.6rem; }
       #admin-btn .btn-text { display: none; }
       .logo { font-size: 1rem; }
     }
@@ -747,6 +966,9 @@
     <a href="admin.html" id="admin-btn" aria-label="Admin panel">⚙️ <span class="btn-text">Admin</span></a>
     <button id="qr-btn" aria-label="Show QR code">
       📷 <span class="btn-text">QR Code</span>
+    </button>
+    <button id="user-chip" aria-label="Your name / profile">
+      👤 <span id="user-chip-name" class="btn-text">Guest</span>
     </button>
     <button id="cart-btn" aria-label="Open cart">
       🛒 <span class="btn-text">Cart</span>
@@ -776,7 +998,7 @@
       <span id="cart-total">$0.00</span>
     </div>
     <button id="checkout-btn" disabled>
-      <span class="venmo-logo">Venmo</span> Pay with Venmo
+      🛒 Checkout
     </button>
   </div>
 </div>
@@ -789,7 +1011,12 @@
       <button id="close-modal" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.75rem;">Review your order before opening Venmo.</p>
+      <div class="buyer-row">
+        <span class="buyer-label">Paying as:</span>
+        <span class="buyer-name" id="checkout-buyer-name">Guest</span>
+        <button type="button" id="change-name-btn">✏️ Change</button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.75rem;">Review your order before paying.</p>
       <ul class="order-summary-list" id="modal-order-list"></ul>
       <div class="order-total-row">
         <span>Total Due</span>
@@ -809,7 +1036,10 @@
       </div>
       <div class="modal-actions">
         <button id="cancel-checkout">Cancel</button>
-        <button id="open-venmo-btn">Open Venmo <span style="font-size:1.1em">→</span></button>
+        <div class="payment-buttons">
+          <button id="pay-cash-btn">💵 Cash</button>
+          <button id="open-venmo-btn"><span class="venmo-logo">Venmo</span> Pay →</button>
+        </div>
       </div>
     </div>
   </div>
@@ -840,6 +1070,41 @@
   <p id="print-url-text" style="font-size:0.85rem;color:#666;"></p>
 </div>
 
+<!-- ══════════════════════ NAME PROMPT MODAL ══════════════════════ -->
+<div id="name-modal" role="dialog" aria-modal="true" aria-label="Enter your name">
+  <div class="name-modal-box">
+    <span class="nm-emoji">👋</span>
+    <h2>Welcome to NNBC Snack Bar!</h2>
+    <p>Enter your name so we can include it with your order.</p>
+    <input type="text" id="name-input" placeholder="Your name" maxlength="40" autocomplete="name" />
+    <button id="save-name-btn">Continue →</button>
+    <button id="skip-name-btn">Skip for now</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ CASH RECEIPT MODAL ══════════════════════ -->
+<div id="cash-receipt-modal" role="dialog" aria-modal="true" aria-label="Cash Order">
+  <div class="receipt-box">
+    <div class="receipt-header">
+      <span>💵 Cash Order</span>
+      <button id="close-cash-receipt" aria-label="Close">✕</button>
+    </div>
+    <div class="receipt-body">
+      <div class="receipt-show-banner">📋 Show this to the cashier!</div>
+      <div class="receipt-meta">
+        Order: <strong id="receipt-order-num"></strong><br>
+        Buyer: <strong id="receipt-buyer-name"></strong>
+      </div>
+      <ul class="receipt-items" id="receipt-items-list"></ul>
+      <div class="receipt-total-row">
+        <span>Cash Due</span>
+        <span id="receipt-total-amt"></span>
+      </div>
+      <button id="done-cash-btn">✓ Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════ TOAST ══════════════════════ -->
 <div id="toast"></div>
 
@@ -851,7 +1116,11 @@
   const VENMO_USERNAME = "NNBoosterClub";         // @handle (no @)
   const VENMO_DISPLAY  = "Northern Neck Booster Club";
 
-  const STORAGE_KEY = "nnbc_products";
+  const STORAGE_KEY   = "nnbc_products";
+  const USER_KEY      = "nnbc_user";
+  const ORDERS_KEY    = "nnbc_orders";
+  const ORDER_SEQ_KEY = "nnbc_order_seq";
+  const GUEST_NAME    = "Guest";
 
   const SUBCATEGORIES = {
     "Drink": ["Energy Drink", "Soda", "Other"],
@@ -887,11 +1156,72 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
-  let products = loadProducts();
+  // ─────────────────────────────────────────────────────
+  //  USER PROFILE (device recognition)
+  // ─────────────────────────────────────────────────────
+  function loadUser() {
+    try {
+      const s = localStorage.getItem(USER_KEY);
+      return s ? JSON.parse(s) : null;
+    } catch (e) { return null; }
+  }
+
+  function saveUser(user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  function getDisplayName() {
+    const u = loadUser();
+    return (u && u.name) ? u.name : GUEST_NAME;
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  ORDER LOG
+  // ─────────────────────────────────────────────────────
+  function loadOrders() {
+    try {
+      const s = localStorage.getItem(ORDERS_KEY);
+      return s ? JSON.parse(s) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveOrders(orders) {
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+  }
+
+  function logOrder(method) {
+    const entries = Object.entries(cart).filter(([,q]) => q > 0);
+    if (!entries.length) return null;
+    // Use a persisted counter for collision-free sequential order IDs
+    const seq = (parseInt(localStorage.getItem(ORDER_SEQ_KEY), 10) || 0) + 1;
+    localStorage.setItem(ORDER_SEQ_KEY, seq);
+    const id = "ORD-" + String(seq).padStart(5, "0");
+    const items = entries.map(([pid, qty]) => {
+      const p = products.find(p => p.id === +pid);
+      return p ? { id: p.id, name: p.name, qty, price: p.price } : null;
+    }).filter(Boolean);
+    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const order = {
+      id,
+      ts: Date.now(),
+      buyerName: getDisplayName(),
+      items,
+      total,
+      method,
+      status: method === "cash" ? "pending" : "paid"
+    };
+    const orders = loadOrders();
+    orders.unshift(order); // newest first
+    saveOrders(orders);
+    return order;
+  }
+
+
 
   // ─────────────────────────────────────────────────────
   //  STATE
   // ─────────────────────────────────────────────────────
+  let products = loadProducts();
   const cart = {}; // { productId: quantity }
 
   // ─────────────────────────────────────────────────────
@@ -1181,6 +1511,9 @@
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     const total   = cartTotal();
 
+    // Populate buyer name
+    getById("checkout-buyer-name").textContent = getDisplayName();
+
     const list = getById("modal-order-list");
     list.innerHTML = "";
     entries.forEach(([id, qty]) => {
@@ -1209,12 +1542,108 @@
   });
 
   // ─────────────────────────────────────────────────────
+  //  NAME PROMPT MODAL
+  // ─────────────────────────────────────────────────────
+  function updateUserChip() {
+    getById("user-chip-name").textContent = getDisplayName();
+  }
+
+  function openNameModal() {
+    const u = loadUser();
+    getById("name-input").value = (u && u.name) ? u.name : "";
+    getById("name-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => getById("name-input").focus(), 50);
+  }
+
+  function closeNameModal() {
+    getById("name-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function saveName() {
+    const name = getById("name-input").value.trim();
+    if (!name) { getById("name-input").focus(); return; }
+    const u = loadUser() || {};
+    u.name = name;
+    saveUser(u);
+    updateUserChip();
+    closeNameModal();
+    showToast("👋 Hi, " + escHtml(name) + "!");
+  }
+
+  getById("save-name-btn").addEventListener("click", saveName);
+  getById("skip-name-btn").addEventListener("click", closeNameModal);
+  getById("name-input").addEventListener("keydown", e => { if (e.key === "Enter") saveName(); });
+  getById("user-chip").addEventListener("click", openNameModal);
+  getById("change-name-btn").addEventListener("click", () => { closeCheckout(); openNameModal(); });
+
+  // ─────────────────────────────────────────────────────
+  //  CASH RECEIPT MODAL
+  // ─────────────────────────────────────────────────────
+  function openCashReceipt(order) {
+    getById("receipt-order-num").textContent  = order.id;
+    getById("receipt-buyer-name").textContent = order.buyerName;
+    const ul = getById("receipt-items-list");
+    ul.innerHTML = "";
+    order.items.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${item.qty}× ${escHtml(item.name)}</span><span>${formatPrice(item.price * item.qty)}</span>`;
+      ul.appendChild(li);
+    });
+    getById("receipt-total-amt").textContent = formatPrice(order.total);
+    getById("cash-receipt-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeCashReceipt() {
+    getById("cash-receipt-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  getById("close-cash-receipt").addEventListener("click", closeCashReceipt);
+  getById("done-cash-btn").addEventListener("click", closeCashReceipt);
+  getById("cash-receipt-modal").addEventListener("click", e => {
+    if (e.target === getById("cash-receipt-modal")) closeCashReceipt();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  CASH PAYMENT
+  // ─────────────────────────────────────────────────────
+  getById("pay-cash-btn").addEventListener("click", () => {
+    // Decrement stock
+    Object.entries(cart).forEach(([id, qty]) => {
+      const item = products.find(p => p.id === +id);
+      if (item && item.stock !== null && item.stock !== undefined) {
+        item.stock = Math.max(0, item.stock - qty);
+      }
+    });
+    saveProducts(products);
+
+    // Log order before clearing cart
+    const order = logOrder("cash");
+
+    closeCheckout();
+    Object.keys(cart).forEach(k => delete cart[k]);
+    updateCartUI();
+    buildTabs();
+    renderProducts();
+
+    if (order) {
+      openCashReceipt(order);
+    } else {
+      showToast("Cash order placed! Please pay at the counter 💵");
+    }
+  });
+
+  // ─────────────────────────────────────────────────────
   //  VENMO DEEP LINK + STOCK DECREMENT
   // ─────────────────────────────────────────────────────
   getById("open-venmo-btn").addEventListener("click", () => {
-    const total = cartTotal();
+    const total     = cartTotal();
+    const buyerName = getDisplayName();
 
-    // Build note
+    // Build note (include buyer name)
     const noteParts = Object.entries(cart)
       .filter(([,q]) => q > 0)
       .map(([id, qty]) => {
@@ -1222,7 +1651,8 @@
         return p ? `${qty}x ${p.name}` : "";
       })
       .filter(Boolean);
-    const note = "NNBC Snack Bar: " + noteParts.join(", ");
+    const namePrefix = buyerName !== GUEST_NAME ? buyerName + " - " : "";
+    const note = "NNBC Snack Bar: " + namePrefix + noteParts.join(", ");
 
     // Decrement stock for tracked items (use in-memory list to avoid reading stale data)
     Object.entries(cart).forEach(([id, qty]) => {
@@ -1232,6 +1662,9 @@
       }
     });
     saveProducts(products);
+
+    // Log order
+    logOrder("venmo");
 
     const params = new URLSearchParams({
       txn:        "pay",
@@ -1299,6 +1732,13 @@
   buildTabs();
   renderProducts();
   updateCartUI();
+  updateUserChip();
+
+  // Show name prompt on first visit (no name saved yet)
+  const _initUser = loadUser();
+  if (!_initUser || !_initUser.name) {
+    setTimeout(openNameModal, 800);
+  }
 </script>
 </body>
 </html>
