@@ -321,7 +321,7 @@
     .row-visual img { width: 100%; height: 100%; object-fit: cover; }
 
     .row-info { flex: 1; min-width: 0; }
-    .row-name { font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-name { font-size: 0.9rem; font-weight: 700; word-break: break-word; }
     .row-meta { font-size: 0.78rem; color: var(--text-light); margin-top: 0.1rem; }
 
     .cat-badge {
@@ -701,6 +701,147 @@
       .row-visual { width: 40px; height: 40px; font-size: 1.4rem; }
       .section-title { font-size: 1.1rem; }
     }
+
+    /* ── Admin Hero Panel ── */
+    .admin-hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #244e7c 100%);
+      color: #fff;
+      padding: 2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .admin-hero-info { display: flex; align-items: center; gap: 0.85rem; }
+    .admin-hero-logo { font-size: 2.2rem; flex-shrink: 0; }
+    .admin-hero-title { font-size: 1.4rem; font-weight: 700; }
+    .admin-hero-sub { font-size: 0.88rem; opacity: 0.8; margin-top: 0.2rem; }
+    .admin-hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .hero-btn {
+      padding: 0.65rem 1.2rem;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.35);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .hero-btn:hover { background: rgba(255,255,255,0.28); }
+    .hero-btn.accent { background: var(--accent); border-color: var(--accent); }
+    .hero-btn.accent:hover { filter: brightness(1.1); background: var(--accent); }
+
+    @media (max-width: 500px) {
+      .admin-hero { padding: 1.25rem 0.75rem; gap: 1rem; }
+      .admin-hero-title { font-size: 1.15rem; }
+      .hero-btn { padding: 0.55rem 0.9rem; font-size: 0.82rem; }
+    }
+
+    /* ── Add Item Modal ── */
+    #add-item-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+    }
+    #add-item-modal.open { display: flex; }
+
+    .item-modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
+      margin: auto;
+    }
+    .item-modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .item-modal-body { padding: 1.5rem; }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 0.2rem;
+    }
+    .btn-close-modal:hover { color: var(--accent); }
+
+    /* ── Admin Menu Toolbar ── */
+    .admin-menu-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .admin-search-wrap { position: relative; }
+    .admin-search-wrap input[type="search"] {
+      width: 100%;
+      padding: 0.6rem 0.9rem 0.6rem 2.2rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .admin-search-wrap input[type="search"]:focus { border-color: var(--primary); background: #fff; }
+    .admin-search-icon {
+      position: absolute;
+      left: 0.7rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+    .admin-cat-tabs {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .admin-cat-tabs::-webkit-scrollbar { display: none; }
+    .admin-cat-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      color: var(--text-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.4rem 0.9rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .admin-cat-btn:hover, .admin-cat-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -746,11 +887,87 @@
     </div>
   </header>
 
+  <!-- ── Hero Panel ── -->
+  <div class="admin-hero">
+    <div class="admin-hero-info">
+      <div class="admin-hero-logo">🛒</div>
+      <div>
+        <div class="admin-hero-title">NNBC Admin Panel</div>
+        <div class="admin-hero-sub">Manage your snack bar menu &amp; orders</div>
+      </div>
+    </div>
+    <div class="admin-hero-actions">
+      <button class="hero-btn" id="hero-analytics-btn">📊 Analytics</button>
+      <button class="hero-btn" id="hero-stock-btn">📦 Stock</button>
+      <button class="hero-btn accent" id="hero-new-item-btn">➕ New Item</button>
+    </div>
+  </div>
+
   <div class="admin-main">
 
-    <!-- ── Add / Edit Item ── -->
-    <h2 class="section-title" id="form-heading">➕ Add New Item</h2>
+    <!-- ── Current Menu ── -->
+    <h2 class="section-title" id="menu-section-title">📋 Current Menu</h2>
     <div class="card">
+      <div class="admin-menu-toolbar">
+        <div class="admin-search-wrap">
+          <span class="admin-search-icon">🔍</span>
+          <input type="search" id="admin-search" placeholder="Search items…" autocomplete="off" />
+        </div>
+        <div class="admin-cat-tabs" id="admin-cat-tabs"></div>
+      </div>
+      <div id="product-list"></div>
+    </div>
+
+    <!-- ── Orders ── -->
+    <h2 class="section-title" id="orders-section-title" style="margin-top:2rem">📊 Order History</h2>
+    <div class="card">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem;">
+        Orders placed via this device are recorded here. Cash orders can be marked as paid once collected.
+      </p>
+      <div class="orders-stats" id="orders-stats"></div>
+      <div class="orders-toolbar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="cash">💵 Cash</button>
+        <button class="filter-btn" data-filter="venmo">Venmo</button>
+        <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+        <button class="btn-clear-orders" id="clear-orders-btn">🗑 Clear History</button>
+      </div>
+      <div id="order-list"></div>
+    </div>
+
+    <!-- ── Settings ── -->
+    <h2 class="section-title" style="margin-top:2rem">⚙️ Settings</h2>
+    <div class="card">
+      <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:1rem;">Change the admin PIN used to access this page.</p>
+      <div class="pin-row">
+        <input type="password" id="new-pin" placeholder="New PIN" maxlength="20" />
+        <input type="password" id="new-pin-confirm" placeholder="Confirm new PIN" maxlength="20" />
+        <button type="button" class="btn-save" id="change-pin-btn">Update PIN</button>
+      </div>
+      <div class="error-msg" id="pin-change-error"></div>
+    </div>
+
+    <!-- ── Danger Zone ── -->
+    <div class="danger-zone">
+      <h3>⚠️ Danger Zone</h3>
+      <p>Reset all menu items back to the built-in defaults. This cannot be undone.</p>
+      <button class="btn-danger" id="reset-btn">Reset to Defaults</button>
+    </div>
+
+  </div><!-- /admin-main -->
+</div><!-- /admin-panel -->
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<!-- ══════════════════════ ADD / EDIT ITEM MODAL ══════════════════════ -->
+<div id="add-item-modal" role="dialog" aria-modal="true" aria-labelledby="form-heading">
+  <div class="item-modal-box">
+    <div class="item-modal-header">
+      <span id="form-heading">➕ Add New Item</span>
+      <button class="btn-close-modal" id="close-item-modal" aria-label="Close">✕</button>
+    </div>
+    <div class="item-modal-body">
       <form id="item-form" autocomplete="off">
         <input type="hidden" id="edit-id" value="" />
         <div class="form-grid">
@@ -807,52 +1024,8 @@
         </div>
       </form>
     </div>
-
-    <!-- ── Current Menu ── -->
-    <h2 class="section-title">📋 Current Menu</h2>
-    <div id="product-list"></div>
-
-    <!-- ── Orders ── -->
-    <h2 class="section-title" style="margin-top:2rem">📊 Order History</h2>
-    <div class="card">
-      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1rem;">
-        Orders placed via this device are recorded here. Cash orders can be marked as paid once collected.
-      </p>
-      <div class="orders-stats" id="orders-stats"></div>
-      <div class="orders-toolbar">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="cash">💵 Cash</button>
-        <button class="filter-btn" data-filter="venmo">Venmo</button>
-        <button class="filter-btn" data-filter="pending">⏳ Pending</button>
-        <button class="btn-clear-orders" id="clear-orders-btn">🗑 Clear History</button>
-      </div>
-      <div id="order-list"></div>
-    </div>
-
-    <!-- ── Settings ── -->
-    <h2 class="section-title" style="margin-top:2rem">⚙️ Settings</h2>
-    <div class="card">
-      <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:1rem;">Change the admin PIN used to access this page.</p>
-      <div class="pin-row">
-        <input type="password" id="new-pin" placeholder="New PIN" maxlength="20" />
-        <input type="password" id="new-pin-confirm" placeholder="Confirm new PIN" maxlength="20" />
-        <button type="button" class="btn-save" id="change-pin-btn">Update PIN</button>
-      </div>
-      <div class="error-msg" id="pin-change-error"></div>
-    </div>
-
-    <!-- ── Danger Zone ── -->
-    <div class="danger-zone">
-      <h3>⚠️ Danger Zone</h3>
-      <p>Reset all menu items back to the built-in defaults. This cannot be undone.</p>
-      <button class="btn-danger" id="reset-btn">Reset to Defaults</button>
-    </div>
-
-  </div><!-- /admin-main -->
-</div><!-- /admin-panel -->
-
-<!-- ── Toast ── -->
-<div id="toast"></div>
+  </div>
+</div>
 
 <!-- ══════════════════════ SCRIPT ══════════════════════ -->
 <script>
@@ -1168,6 +1341,7 @@
     resetImageField(null);
     $("f-subcategory-group").style.display = "none";
     $("f-subcategory").innerHTML = "";
+    closeItemModal();
   }
 
   function startEdit(id) {
@@ -1188,10 +1362,45 @@
     $("form-submit-btn").textContent   = "Save Changes";
     $("cancel-edit-btn").style.display = "inline-flex";
 
-    $("form-heading").scrollIntoView({ behavior: "smooth", block: "start" });
+    openItemModal();
   }
 
   $("cancel-edit-btn").addEventListener("click", resetForm);
+
+  // ─────────────────────────────────────────────────────
+  //  ADD/EDIT ITEM MODAL
+  // ─────────────────────────────────────────────────────
+  function openItemModal() {
+    $("add-item-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => $("f-name").focus(), 50);
+  }
+
+  function closeItemModal() {
+    $("add-item-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  $("close-item-modal").addEventListener("click", resetForm);
+  $("add-item-modal").addEventListener("click", e => {
+    if (e.target === $("add-item-modal")) resetForm();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  HERO PANEL BUTTONS
+  // ─────────────────────────────────────────────────────
+  $("hero-new-item-btn").addEventListener("click", () => {
+    resetForm();
+    openItemModal();
+  });
+
+  $("hero-analytics-btn").addEventListener("click", () => {
+    $("orders-section-title").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  $("hero-stock-btn").addEventListener("click", () => {
+    $("menu-section-title").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   $("item-form").addEventListener("submit", e => {
     e.preventDefault();
@@ -1241,12 +1450,58 @@
   // ─────────────────────────────────────────────────────
   //  RENDER PRODUCT LIST
   // ─────────────────────────────────────────────────────
+  let adminActiveCategory = "All";
+  let adminSearchQuery    = "";
+
+  function buildAdminCatTabs() {
+    const allItems = loadProducts();
+    const cats = ["All", ...new Set(allItems.map(p => p.category))];
+    const container = $("admin-cat-tabs");
+    container.innerHTML = "";
+    cats.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "admin-cat-btn" + (cat === adminActiveCategory ? " active" : "");
+      btn.textContent = cat;
+      btn.type = "button";
+      btn.addEventListener("click", () => {
+        adminActiveCategory = cat;
+        renderProductList();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  $("admin-search").addEventListener("input", () => {
+    adminSearchQuery = $("admin-search").value;
+    renderProductList();
+  });
+
   function renderProductList() {
-    const list = loadProducts();
+    let list = loadProducts();
     const container = $("product-list");
 
+    buildAdminCatTabs();
+
+    // Apply category filter
+    if (adminActiveCategory !== "All") {
+      list = list.filter(p => p.category === adminActiveCategory);
+    }
+
+    // Apply search filter
+    if (adminSearchQuery.trim()) {
+      const q = adminSearchQuery.trim().toLowerCase();
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        (p.subcategory && p.subcategory.toLowerCase().includes(q))
+      );
+    }
+
     if (list.length === 0) {
-      container.innerHTML = `<div class="empty-state">No items yet. Add your first item above!</div>`;
+      const allItems = loadProducts();
+      container.innerHTML = allItems.length === 0
+        ? `<div class="empty-state">No items yet. Click "➕ New Item" to add your first item!</div>`
+        : `<div class="empty-state">No items match your search.</div>`;
       return;
     }
 
