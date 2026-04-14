@@ -1035,6 +1035,34 @@
       .logo-text { display: none; }
       .header-actions { gap: 0.35rem; }
     }
+
+    /* ── Shop Search Bar ── */
+    .shop-search-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .shop-search-wrap input[type="search"] {
+      width: 100%;
+      padding: 0.65rem 1rem 0.65rem 2.4rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      background: var(--card-bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .shop-search-wrap input[type="search"]:focus { border-color: var(--primary); }
+    .shop-search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+      color: var(--text-light);
+    }
   </style>
 </head>
 <body>
@@ -1063,6 +1091,10 @@
 <!-- ══════════════════════ MAIN ══════════════════════ -->
 <main>
   <h2 class="section-title">Menu</h2>
+  <div class="shop-search-wrap">
+    <span class="shop-search-icon">🔍</span>
+    <input type="search" id="shop-search" placeholder="Search menu…" autocomplete="off" aria-label="Search menu items" />
+  </div>
   <div class="tabs" id="tabs"></div>
   <div class="product-grid" id="product-grid"></div>
 </main>
@@ -1347,6 +1379,7 @@
   // ─────────────────────────────────────────────────────
   let activeCategory    = "All";
   let activeSubcategory = "All";
+  let shopSearchQuery   = "";
 
   function getCategories() {
     return ["All", ...new Set(products.map(p => p.category))];
@@ -1412,6 +1445,16 @@
 
     if (activeSubcategory !== "All" && SUBCATEGORIES[activeCategory]) {
       filtered = filtered.filter(p => p.subcategory === activeSubcategory);
+    }
+
+    // Apply search filter
+    if (shopSearchQuery.trim()) {
+      const q = shopSearchQuery.trim().toLowerCase();
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        (p.subcategory && p.subcategory.toLowerCase().includes(q))
+      );
     }
 
     filtered.forEach(p => {
@@ -1871,6 +1914,11 @@
   // ─────────────────────────────────────────────────────
   //  INIT
   // ─────────────────────────────────────────────────────
+  getById("shop-search").addEventListener("input", () => {
+    shopSearchQuery = getById("shop-search").value;
+    renderProducts();
+  });
+
   buildTabs();
   renderProducts();
   updateCartUI();
