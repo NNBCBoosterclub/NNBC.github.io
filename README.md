@@ -2,6 +2,8 @@
 
 A web app for the NNBC Snack Bar. Customers browse the menu, add items to their cart, and check out via Venmo. Shop owners manage inventory, add/edit/delete items, and upload photos — all from the browser, no code needed.
 
+🌐 **Live site:** [https://NNBCBoosterclub.github.io/NNBC.github.io/](https://NNBCBoosterclub.github.io/NNBC.github.io/)
+
 ## 🌐 Live Site & Hosting on GitHub
 
 The site deploys automatically to **GitHub Pages** whenever changes are pushed to the `main` branch.
@@ -19,7 +21,7 @@ The site deploys automatically to **GitHub Pages** whenever changes are pushed t
 4. **Enable GitHub Pages** (one-time):
    **Settings → Pages** → **Source** → **GitHub Actions** → Save.
 
-5. Push any change to `main` and the site will be live at **https://NNBCBoosterclub.github.io/**
+5. Push any change to `main` and the site will be live at **https://NNBCBoosterclub.github.io/NNBC.github.io/**
 
 > **Already set up?** You only need step 4. The workflow (`.github/workflows/deploy.yml`) handles the rest.
 
