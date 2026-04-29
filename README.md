@@ -2,28 +2,13 @@
 
 A web app for the NNBC Snack Bar. Customers browse the menu, add items to their cart, and check out via Venmo. Shop owners manage inventory, add/edit/delete items, and upload photos — all from the browser, no code needed.
 
-🌐 **Live site:** [https://NNBCBoosterclub.github.io/NNBC.github.io/](https://NNBCBoosterclub.github.io/NNBC.github.io/)
+🌐 **Live site:** [https://NNBCBoosterclub.github.io/](https://NNBCBoosterclub.github.io/)
+
+![QR Code](qr-code.png)
 
 ## 🌐 Live Site & Hosting on GitHub
 
 The site deploys automatically to **GitHub Pages** whenever changes are pushed to the `main` branch.
-
-### Getting a clean `NNBCBoosterclub.github.io` URL
-
-1. **Create a free GitHub organization** named exactly `NNBCBoosterclub` at [github.com/organizations/new](https://github.com/organizations/new).
-
-2. **Transfer this repository** to that organization:
-   Repo → **Settings** → scroll to bottom → **Transfer ownership** → `NNBCBoosterclub`.
-
-3. **Rename the repository** to `NNBCBoosterclub.github.io`:
-   Repo → **Settings** → **General** → change the name.
-
-4. **Enable GitHub Pages** (one-time):
-   **Settings → Pages** → **Source** → **GitHub Actions** → Save.
-
-5. Push any change to `main` and the site will be live at **https://NNBCBoosterclub.github.io/NNBC.github.io/**
-
-> **Already set up?** You only need step 4. The workflow (`.github/workflows/deploy.yml`) handles the rest.
 
 ---
 
@@ -76,7 +61,9 @@ Each item has a **stock count** that you control:
 
 ## 📷 QR Code
 
-Click the **📷 QR Code** button in the store header to:
+A scannable QR code linking to the store is included at the top of this README and can be printed to post at the snack bar.
+
+In the app, click the **📷 QR Code** button in the store header to:
 - See a scannable QR code that links directly to the store.
 - Print a clean QR code page to post at the snack bar.
 
