@@ -2,7 +2,7 @@
 
 A web app for the NNBC Snack Bar. Customers browse the menu, add items to their cart, and check out via Venmo. Shop owners manage inventory, add/edit/delete items, and upload photos — all from the browser, no code needed.
 
-🌐 **Live site:** [https://NNBC.github.io/](https://NNBC.github.io/)
+🌐 **Live site:** [https://NNBCBoosterclub.github.io/](https://NNBCBoosterclub.github.io/)
 
 ![QR Code](qr-code.png)
 
