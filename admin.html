@@ -1032,12 +1032,17 @@
   // ─────────────────────────────────────────────────────
   //  CONSTANTS
   // ─────────────────────────────────────────────────────
+  // Storage keys used by the admin experience.
+  // Renaming these keys disconnects this page from existing saved browser data.
   const STORAGE_KEY  = "nnbc_products";
   const PIN_KEY      = "nnbc_admin_pin";
   const SESSION_KEY  = "nnbc_admin_auth";
+  // Image settings affect compression quality and max upload size.
   const IMAGE_QUALITY  = 0.82;
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
 
+  // Keep this list aligned with front-page subcategory behavior.
+  // Category names must exactly match values used in products.
   const SUBCATEGORIES = {
     "Drink": ["Energy Drink", "Soda", "Other"],
     "Snack": ["Protein", "Health", "Savory", "Sweet"]
@@ -1069,6 +1074,8 @@
   // ─────────────────────────────────────────────────────
   //  PIN (hashed with Web Crypto)
   // ─────────────────────────────────────────────────────
+  // PIN hashes are salted and stored locally in browser storage.
+  // There is no server-side auth for this static site.
   async function hashPin(pin) {
     const encoder = new TextEncoder();
     const data = encoder.encode("nnbc_salt_2024:" + pin);
@@ -1089,6 +1096,8 @@
   // ─────────────────────────────────────────────────────
   //  ROUTING
   // ─────────────────────────────────────────────────────
+  // Determines which screen should be visible: setup, login, or admin panel.
+  // Also triggers initial data rendering once authenticated.
   function route() {
     const hasPin = !!localStorage.getItem(PIN_KEY);
     const authed = sessionStorage.getItem(SESSION_KEY) === "1";
@@ -1158,6 +1167,7 @@
   // ─────────────────────────────────────────────────────
   //  PRODUCTS — load / save
   // ─────────────────────────────────────────────────────
+  // Reads menu data and performs schema migration for older saved payloads.
   function loadProducts() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -1181,16 +1191,19 @@
   }
 
   function saveProducts(list) {
+    // Single save point for product list writes from admin actions.
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
   function nextId(list) {
+    // Local incremental IDs are sufficient because data is browser-local.
     return list.length === 0 ? 1 : Math.max(...list.map(p => p.id)) + 1;
   }
 
   // ─────────────────────────────────────────────────────
   //  STOCK HELPERS
   // ─────────────────────────────────────────────────────
+  // Update badge wording/colors here if stock messaging needs to change globally.
   function stockPillHtml(stock) {
     if (stock === null || stock === undefined) {
       return `<span class="stock-pill unlimited">∞ Unlimited</span>`;
@@ -1267,6 +1280,7 @@
   });
 
   function resetImageField(existingUrl) {
+    // Called both when opening edit mode and when resetting form state.
     pendingImageUrl = null;
     $("f-image").value = "";
     if (existingUrl) {
@@ -1283,12 +1297,14 @@
   // ─────────────────────────────────────────────────────
   //  STOCK FIELD TOGGLE (unlimited checkbox)
   // ─────────────────────────────────────────────────────
+  // "Unlimited" means stock is not tracked; stored value becomes null.
   $("f-stock-unlimited").addEventListener("change", () => {
     $("f-stock").disabled = $("f-stock-unlimited").checked;
     if ($("f-stock-unlimited").checked) $("f-stock").value = "";
   });
 
   function getStockFieldValue() {
+    // Normalizes invalid numeric input back to null for safe persistence.
     if ($("f-stock-unlimited").checked) return null; // not tracked
     const v = parseInt($("f-stock").value, 10);
     return (isNaN(v) || v < 0) ? null : v;
@@ -1309,6 +1325,7 @@
   // ─────────────────────────────────────────────────────
   //  SUBCATEGORY FIELD
   // ─────────────────────────────────────────────────────
+  // Rebuilds subcategory options whenever category changes or edit data loads.
   function updateSubcategoryField(category, currentValue) {
     const group  = $("f-subcategory-group");
     const select = $("f-subcategory");
@@ -1331,6 +1348,7 @@
   // ─────────────────────────────────────────────────────
   //  ADD / EDIT FORM
   // ─────────────────────────────────────────────────────
+  // Full form reset for both "cancel" and post-save cleanup paths.
   function resetForm() {
     $("item-form").reset();
     $("edit-id").value = "";
@@ -1345,6 +1363,7 @@
   }
 
   function startEdit(id) {
+    // Populates modal from current storage snapshot to avoid stale form data.
     const list = loadProducts();
     const p = list.find(x => x.id === id);
     if (!p) return;
@@ -1421,6 +1440,7 @@
     const list = loadProducts();
 
     if (editId) {
+      // Edit flow preserves existing image unless user explicitly changes/removes it.
       const idx = list.findIndex(x => x.id === +editId);
       if (idx === -1) { showToast("Item not found.", true); return; }
 
@@ -1432,6 +1452,7 @@
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
+      // Add flow blocks duplicate names (case-insensitive) for cleaner menu UX.
       const duplicate = list.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
       if (duplicate) {
         showToast(`⚠️ "${name}" is already on the menu.`, true);
@@ -1450,6 +1471,7 @@
   // ─────────────────────────────────────────────────────
   //  RENDER PRODUCT LIST
   // ─────────────────────────────────────────────────────
+  // Admin list has independent category/search state from the customer page.
   let adminActiveCategory = "All";
   let adminSearchQuery    = "";
 
@@ -1482,12 +1504,12 @@
 
     buildAdminCatTabs();
 
-    // Apply category filter
+    // Apply category filter first, then search filter to minimize result set.
     if (adminActiveCategory !== "All") {
       list = list.filter(p => p.category === adminActiveCategory);
     }
 
-    // Apply search filter
+    // Search covers name/category/subcategory to match shop-side discoverability.
     if (adminSearchQuery.trim()) {
       const q = adminSearchQuery.trim().toLowerCase();
       list = list.filter(p =>
@@ -1576,6 +1598,7 @@
           restockBtn.style.display = "";
         });
 
+        // Restock writes to canonical localStorage data, then re-renders list.
         function applyRestock() {
           const addQty = parseInt(restockQty.value, 10);
           if (isNaN(addQty) || addQty < 1) {
@@ -1587,7 +1610,7 @@
           const item  = prods.find(x => x.id === p.id);
           if (!item) return;
           const wasUnlimited = item.stock === null || item.stock === undefined;
-          // If stock was null (unlimited), begin tracking from addQty
+          // If item was unlimited, restocking starts tracked inventory at addQty.
           item.stock = wasUnlimited ? addQty : item.stock + addQty;
           saveProducts(prods);
           const note = wasUnlimited ? ` (stock tracking started)` : "";
@@ -1665,6 +1688,8 @@
   // ─────────────────────────────────────────────────────
   //  ORDERS
   // ─────────────────────────────────────────────────────
+  // Orders are stored locally on this device only.
+  // This history is useful for front-counter workflows but is not multi-device synced.
   const ORDERS_KEY = "nnbc_orders";
 
   function loadOrders() {
@@ -1685,7 +1710,7 @@
     const statsEl   = $("orders-stats");
     const container = $("order-list");
 
-    // Stats
+    // Dashboard stats count only paid orders as collected revenue.
     const paid        = all.filter(o => o.status === "paid");
     const pendingList = all.filter(o => o.status === "pending");
     const totalRev    = paid.reduce((s, o) => s + o.total, 0);
@@ -1695,7 +1720,7 @@
       <div class="stat-chip">Collected: <strong>$${totalRev.toFixed(2)}</strong></div>
       <div class="stat-chip">Pending Cash: <strong>${pendingList.length} ($${pendingAmt.toFixed(2)})</strong></div>`;
 
-    // Filter
+    // Filter chips control which subset is rendered below.
     let filtered = all;
     if (activeOrderFilter === "cash")    filtered = all.filter(o => o.method === "cash");
     if (activeOrderFilter === "venmo")   filtered = all.filter(o => o.method === "venmo");

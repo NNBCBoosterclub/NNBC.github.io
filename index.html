@@ -1244,15 +1244,21 @@
   // ─────────────────────────────────────────────────────
   //  CONFIGURATION — Venmo info
   // ─────────────────────────────────────────────────────
+  // Main payment destination settings.
+  // Edit these when account ownership changes.
+  // VENMO_USERNAME must stay handle-only (no "@").
   const VENMO_USERNAME = "NNBoosterClub";         // @handle (no @)
   const VENMO_DISPLAY  = "Northern Neck Booster Club";
 
+  // Browser storage keys. Renaming these resets visible data for this page.
   const STORAGE_KEY   = "nnbc_products";
   const USER_KEY      = "nnbc_user";
   const ORDERS_KEY    = "nnbc_orders";
   const ORDER_SEQ_KEY = "nnbc_order_seq";
   const GUEST_NAME    = "Guest";
 
+  // Data-driven sub-tabs.
+  // If a category appears here, subcategory chips automatically render for it.
   const SUBCATEGORIES = {
     "Drink": ["Energy Drink", "Soda", "Other"],
     "Snack": ["Protein", "Health", "Savory", "Sweet"]
@@ -1261,6 +1267,8 @@
   // ─────────────────────────────────────────────────────
   //  PRODUCT STORAGE
   // ─────────────────────────────────────────────────────
+  // Reads and normalizes menu data from localStorage.
+  // Back-compat logic lets older stored payloads keep working.
   function loadProducts() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -1284,12 +1292,14 @@
   }
 
   function saveProducts(list) {
+    // Central save path so all write behavior stays consistent.
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
   // ─────────────────────────────────────────────────────
   //  USER PROFILE (device recognition)
   // ─────────────────────────────────────────────────────
+  // User identity is per-browser, not shared across devices.
   function loadUser() {
     try {
       const s = localStorage.getItem(USER_KEY);
@@ -1302,6 +1312,7 @@
   }
 
   function getDisplayName() {
+    // Single source for "Guest" fallback used across checkout + receipts.
     const u = loadUser();
     return (u && u.name) ? u.name : GUEST_NAME;
   }
@@ -1321,9 +1332,10 @@
   }
 
   function logOrder(method) {
+    // Snapshot cart at checkout time; later menu edits should not change history records.
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     if (!entries.length) return null;
-    // Use a persisted counter for collision-free sequential order IDs
+    // Persisted counter avoids duplicate order IDs after refresh/reopen.
     const seq = (parseInt(localStorage.getItem(ORDER_SEQ_KEY), 10) || 0) + 1;
     localStorage.setItem(ORDER_SEQ_KEY, seq);
     const id = "ORD-" + String(seq).padStart(5, "0");
@@ -1352,7 +1364,9 @@
   // ─────────────────────────────────────────────────────
   //  STATE
   // ─────────────────────────────────────────────────────
+  // Keep in-memory products synced with localStorage whenever stock changes.
   let products = loadProducts();
+  // Cart shape: { productId: quantity }
   const cart = {}; // { productId: quantity }
 
   // ─────────────────────────────────────────────────────
@@ -1387,6 +1401,7 @@
   // ─────────────────────────────────────────────────────
   //  RENDER MENU
   // ─────────────────────────────────────────────────────
+  // Menu filter state. UI controls update these values, then trigger re-render.
   let activeCategory    = "All";
   let activeSubcategory = "All";
   let shopSearchQuery   = "";
@@ -1416,7 +1431,7 @@
     });
     container.appendChild(parentRow);
 
-    // Sub-tabs row (only for Drink and Snack)
+    // Render sub-tabs only when the current category has entries in SUBCATEGORIES.
     if (activeCategory !== "All" && SUBCATEGORIES[activeCategory]) {
       const subRow = document.createElement("div");
       subRow.className = "tabs-row subtabs-row";
@@ -1457,7 +1472,7 @@
       filtered = filtered.filter(p => p.subcategory === activeSubcategory);
     }
 
-    // Apply search filter
+    // Search spans name/category/subcategory so users can find items quickly.
     if (shopSearchQuery.trim()) {
       const q = shopSearchQuery.trim().toLowerCase();
       filtered = filtered.filter(p =>
@@ -1468,7 +1483,10 @@
     }
 
     filtered.forEach(p => {
-      // Out of stock if stock is exactly 0 (null = unlimited = in stock)
+      // Stock model:
+      // null/undefined => unlimited (always purchasable)
+      // 0              => out of stock
+      // positive int   => tracked remaining quantity
       const outOfStock = p.stock === 0;
       const qty = cart[p.id] || 0;
 
@@ -1489,7 +1507,8 @@
       }
       card.appendChild(visual);
 
-      // Low stock badge (show when stock is tracked and ≤ 5 but > 0)
+      // Low-stock threshold lives here.
+      // Change "<= 5" if you want earlier/later warning badges.
       const lowStockBadge = (p.stock !== null && p.stock > 0 && p.stock <= 5)
         ? `<div class="stock-badge low">Only ${p.stock} left!</div>`
         : "";
@@ -1507,13 +1526,14 @@
           ${outOfStock ? 'Out of Stock' : qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
         </button>`);
 
-      // Qty controls
+      // Qty controls update card-local quantity only.
+      // Cart is updated when the user presses "Add ... to cart".
       card.querySelectorAll(".qty-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           if (outOfStock) return;
           const action = btn.dataset.action;
           const cur = parseInt(getById("qty-" + p.id).textContent, 10);
-          // Don't allow adding more than stock allows
+          // Clamp quantity to available tracked stock.
           const maxQty = (p.stock !== null) ? p.stock : Infinity;
           const next = action === "inc"
             ? Math.min(cur + 1, maxQty)
@@ -1525,7 +1545,7 @@
         });
       });
 
-      // Add to cart
+      // Commit selected quantity into shared cart state.
       card.querySelector(".add-btn").addEventListener("click", () => {
         const qty = parseInt(getById("qty-" + p.id).textContent, 10);
         if (qty > 0 && !outOfStock) {
@@ -1545,6 +1565,7 @@
   // ─────────────────────────────────────────────────────
   //  CART UI
   // ─────────────────────────────────────────────────────
+  // Total is computed dynamically from current cart quantities and current product prices.
   function cartTotal() {
     return Object.entries(cart).reduce((sum, [id, qty]) => {
       const p = products.find(p => p.id === +id);
@@ -1557,6 +1578,7 @@
   }
 
   function updateCartUI() {
+    // Main cart redraw entry point; call after every cart mutation.
     const count = cartCount();
     const badge = getById("cart-badge");
     badge.textContent = count;
@@ -1610,6 +1632,7 @@
         <div class="cart-item-total">${formatPrice(p.price * qty)}</div>`);
       row.insertBefore(visual, row.firstChild);
 
+      // In-cart +/- keeps adjustments close to checkout.
       row.querySelectorAll(".cqty-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           const pid = +btn.dataset.id;
@@ -1649,6 +1672,7 @@
   // ─────────────────────────────────────────────────────
   //  CHECKOUT MODAL
   // ─────────────────────────────────────────────────────
+  // Builds checkout summary from current in-memory cart.
   function openCheckout() {
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     const total   = cartTotal();
@@ -1753,7 +1777,8 @@
   //  CASH PAYMENT
   // ─────────────────────────────────────────────────────
   getById("pay-cash-btn").addEventListener("click", () => {
-    // Decrement stock
+    // Decrement tracked stock immediately on confirmation.
+    // Note: with localStorage-only architecture, this syncs only on this device.
     Object.entries(cart).forEach(([id, qty]) => {
       const item = products.find(p => p.id === +id);
       if (item && item.stock !== null && item.stock !== undefined) {
@@ -1762,7 +1787,7 @@
     });
     saveProducts(products);
 
-    // Log order before clearing cart
+    // Persist order first so receipt has full details.
     const order = logOrder("cash");
 
     closeCheckout();
@@ -1785,7 +1810,7 @@
     const total     = cartTotal();
     const buyerName = getDisplayName();
 
-    // Build note (include buyer name)
+    // Venmo note includes buyer name (if known) plus compact item list.
     const noteParts = Object.entries(cart)
       .filter(([,q]) => q > 0)
       .map(([id, qty]) => {
@@ -1796,7 +1821,8 @@
     const namePrefix = buyerName !== GUEST_NAME ? buyerName + " - " : "";
     const note = "NNBC Snack Bar: " + namePrefix + noteParts.join(", ");
 
-    // Decrement stock for tracked items (use in-memory list to avoid reading stale data)
+    // Match cash behavior: reduce tracked stock when user chooses Venmo flow.
+    // Uses in-memory list to avoid stale read/write races.
     Object.entries(cart).forEach(([id, qty]) => {
       const item = products.find(p => p.id === +id);
       if (item && item.stock !== null && item.stock !== undefined) {
@@ -1805,7 +1831,7 @@
     });
     saveProducts(products);
 
-    // Log order
+    // Venmo orders are logged as paid right away.
     logOrder("venmo");
 
     const params = new URLSearchParams({
@@ -1829,6 +1855,9 @@
   // ─────────────────────────────────────────────────────
   //  SHARE (Web Share API + fallback modal with copy link & QR)
   // ─────────────────────────────────────────────────────
+  // Share strategy:
+  // 1) Try native Web Share API.
+  // 2) Fallback to in-app modal with copy link + QR + print QR.
   function renderShareQR() {
     const url = window.location.href;
     QRCode.toCanvas(document.getElementById("share-qr-canvas"), url, {
@@ -1924,6 +1953,7 @@
   // ─────────────────────────────────────────────────────
   //  INIT
   // ─────────────────────────────────────────────────────
+  // Startup order is intentional: filters/tabs render first, then cart/user display updates.
   getById("shop-search").addEventListener("input", () => {
     shopSearchQuery = getById("shop-search").value;
     renderProducts();
