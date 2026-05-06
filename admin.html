@@ -842,6 +842,32 @@
       border-color: var(--primary);
       color: #fff;
     }
+    /* ── Nutrition Facts collapsible in item form ── */
+    .nutrition-toggle-btn {
+      width: 100%;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.25rem;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .nutrition-toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nutrition-fields { display: none; margin-top: 0.6rem; }
+    .nutrition-fields.open { display: block; }
+    .nutrition-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.75rem;
+    }
+    .nutrition-hint { font-size: 0.75rem; color: var(--text-light); margin-top: 0.4rem; }
+    @media (max-width: 500px) { .nutrition-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -1017,6 +1043,61 @@
               <button type="button" class="btn-clear-img" id="clear-img-btn">✕ Remove photo</button>
             </div>
           </div>
+          <div class="form-group full">
+            <button type="button" class="nutrition-toggle-btn" id="nutrition-toggle-btn">
+              <span>🥗 Nutrition Facts <span style="font-weight:400;">(optional)</span></span>
+              <span id="nutrition-toggle-icon">▼</span>
+            </button>
+            <div class="nutrition-fields" id="nutrition-fields">
+              <div class="nutrition-grid">
+                <div class="form-group">
+                  <label for="f-serving">Serving Size</label>
+                  <input type="text" id="f-serving" placeholder="e.g. 1 bag (28g)" maxlength="40" />
+                </div>
+                <div class="form-group">
+                  <label for="f-calories">Calories</label>
+                  <input type="number" id="f-calories" placeholder="e.g. 150" min="0" step="1" />
+                </div>
+                <div class="form-group">
+                  <label for="f-total-fat">Total Fat (g)</label>
+                  <input type="number" id="f-total-fat" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-sat-fat">Saturated Fat (g)</label>
+                  <input type="number" id="f-sat-fat" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-trans-fat">Trans Fat (g)</label>
+                  <input type="number" id="f-trans-fat" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-cholesterol">Cholesterol (mg)</label>
+                  <input type="number" id="f-cholesterol" placeholder="0" min="0" step="1" />
+                </div>
+                <div class="form-group">
+                  <label for="f-sodium">Sodium (mg)</label>
+                  <input type="number" id="f-sodium" placeholder="0" min="0" step="1" />
+                </div>
+                <div class="form-group">
+                  <label for="f-total-carbs">Total Carbs (g)</label>
+                  <input type="number" id="f-total-carbs" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-fiber">Dietary Fiber (g)</label>
+                  <input type="number" id="f-fiber" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-sugars">Total Sugars (g)</label>
+                  <input type="number" id="f-sugars" placeholder="0" min="0" step="0.5" />
+                </div>
+                <div class="form-group">
+                  <label for="f-protein">Protein (g)</label>
+                  <input type="number" id="f-protein" placeholder="0" min="0" step="0.5" />
+                </div>
+              </div>
+              <p class="nutrition-hint">Leave blank to hide nutrition info from the menu.</p>
+            </div>
+          </div>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-save" id="form-submit-btn">Add Item</button>
@@ -1181,6 +1262,8 @@
           }
           // Back-compat: ensure subcategory field exists
           if (!('subcategory' in p)) p.subcategory = null;
+          // Back-compat: ensure nutrition field exists
+          if (!('nutrition' in p)) p.nutrition = null;
           return p;
         });
       }
@@ -1323,6 +1406,63 @@
   }
 
   // ─────────────────────────────────────────────────────
+  //  NUTRITION FIELDS
+  // ─────────────────────────────────────────────────────
+  // Nutrition is optional; returns null if no meaningful data was entered.
+  $("nutrition-toggle-btn").addEventListener("click", () => {
+    const fields = $("nutrition-fields");
+    const icon   = $("nutrition-toggle-icon");
+    const open   = fields.classList.toggle("open");
+    icon.textContent = open ? "▲" : "▼";
+  });
+
+  function getNutritionFields() {
+    const numVal = id => {
+      const v = parseFloat($(id).value);
+      return isNaN(v) ? null : v;
+    };
+    const n = {
+      servingSize:   $("f-serving").value.trim() || null,
+      calories:      numVal("f-calories"),
+      totalFat:      numVal("f-total-fat"),
+      saturatedFat:  numVal("f-sat-fat"),
+      transFat:      numVal("f-trans-fat"),
+      cholesterol:   numVal("f-cholesterol"),
+      sodium:        numVal("f-sodium"),
+      totalCarbs:    numVal("f-total-carbs"),
+      dietaryFiber:  numVal("f-fiber"),
+      totalSugars:   numVal("f-sugars"),
+      protein:       numVal("f-protein"),
+    };
+    // Return null when all fields are empty so nutrition is omitted entirely.
+    const hasData = Object.values(n).some(v => v !== null);
+    return hasData ? n : null;
+  }
+
+  function setNutritionFields(n) {
+    const setNum = (id, val) => { $(id).value = (val !== null && val !== undefined) ? val : ""; };
+    $("f-serving").value  = (n && n.servingSize) ? n.servingSize : "";
+    setNum("f-calories",   n && n.calories);
+    setNum("f-total-fat",  n && n.totalFat);
+    setNum("f-sat-fat",    n && n.saturatedFat);
+    setNum("f-trans-fat",  n && n.transFat);
+    setNum("f-cholesterol",n && n.cholesterol);
+    setNum("f-sodium",     n && n.sodium);
+    setNum("f-total-carbs",n && n.totalCarbs);
+    setNum("f-fiber",      n && n.dietaryFiber);
+    setNum("f-sugars",     n && n.totalSugars);
+    setNum("f-protein",    n && n.protein);
+    // Auto-expand section if existing nutrition data is present.
+    if (n) {
+      $("nutrition-fields").classList.add("open");
+      $("nutrition-toggle-icon").textContent = "▲";
+    } else {
+      $("nutrition-fields").classList.remove("open");
+      $("nutrition-toggle-icon").textContent = "▼";
+    }
+  }
+
+  // ─────────────────────────────────────────────────────
   //  SUBCATEGORY FIELD
   // ─────────────────────────────────────────────────────
   // Rebuilds subcategory options whenever category changes or edit data loads.
@@ -1359,6 +1499,7 @@
     resetImageField(null);
     $("f-subcategory-group").style.display = "none";
     $("f-subcategory").innerHTML = "";
+    setNutritionFields(null);
     closeItemModal();
   }
 
@@ -1376,6 +1517,7 @@
     setStockField(p.stock !== undefined ? p.stock : null);
     resetImageField(p.imageUrl || null);
     updateSubcategoryField(p.category, p.subcategory || "");
+    setNutritionFields(p.nutrition || null);
 
     $("form-heading").textContent      = "✏️ Edit Item";
     $("form-submit-btn").textContent   = "Save Changes";
@@ -1431,6 +1573,7 @@
     const stock       = getStockFieldValue();
     const editId      = $("edit-id").value;
     const subcategory = SUBCATEGORIES[category] ? ($("f-subcategory").value || null) : null;
+    const nutrition   = getNutritionFields();
 
     if (!name || isNaN(price) || price < 0 || !category) {
       showToast("Please fill in all required fields.", true);
@@ -1448,7 +1591,7 @@
       if (pendingImageUrl === "")        imageUrl = null;
       else if (pendingImageUrl !== null)  imageUrl = pendingImageUrl;
 
-      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, imageUrl, stock };
+      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, imageUrl, stock, nutrition };
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
@@ -1459,7 +1602,7 @@
         return;
       }
       const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
-      list.push({ id: nextId(list), name, price, category, subcategory, emoji, imageUrl, stock });
+      list.push({ id: nextId(list), name, price, category, subcategory, emoji, imageUrl, stock, nutrition });
       saveProducts(list);
       showToast(`✅ "${name}" added to menu.`);
     }

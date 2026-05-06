@@ -1073,6 +1073,91 @@
       pointer-events: none;
       color: var(--text-light);
     }
+
+    /* ── Nutrition Facts button on product cards ── */
+    .nutrition-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: var(--text-light);
+      padding: 0.18rem 0.5rem;
+      cursor: pointer;
+      margin-top: 0.3rem;
+      transition: border-color 0.15s, color 0.15s;
+      align-self: center;
+    }
+    .nutrition-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Nutrition Facts Modal ── */
+    #nutrition-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 350;
+      align-items: center;
+      justify-content: center;
+    }
+    #nutrition-modal.open { display: flex; }
+    .nutrition-box {
+      background: var(--card-bg);
+      border-radius: 14px;
+      width: 92%;
+      max-width: 330px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+    .nutrition-modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.85rem 1.1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #close-nutrition-modal {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 0.1rem;
+    }
+    #close-nutrition-modal:hover { opacity: 0.8; }
+    .nutrition-panel {
+      padding: 1rem 1.1rem;
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 0.85rem;
+    }
+    .nf-title { font-size: 1.9rem; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 0.1rem; margin-bottom: 0.1rem; line-height: 1.1; }
+    .nf-serving { font-size: 0.82rem; margin-bottom: 0.1rem; }
+    .nf-calories-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 7px solid #000;
+      border-bottom: 3px solid #000;
+      padding: 0.2rem 0;
+      margin: 0.15rem 0;
+    }
+    .nf-cal-label { font-size: 0.9rem; font-weight: 700; }
+    .nf-cal-val   { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+    .nf-daily-note { font-size: 0.68rem; text-align: right; color: #444; margin-bottom: 0.25rem; border-bottom: 7px solid #000; padding-bottom: 0.25rem; }
+    .nf-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.16rem 0;
+      border-bottom: 1px solid #ccc;
+    }
+    .nf-row.thick { border-top: 3px solid #000; }
+    .nf-row.sub   { padding-left: 1rem; }
+    .nf-row:last-child { border-bottom: none; }
+    .nf-label { }
+    .nf-val   { font-weight: 700; }
   </style>
 </head>
 <body>
@@ -1239,6 +1324,17 @@
 <!-- ══════════════════════ TOAST ══════════════════════ -->
 <div id="toast"></div>
 
+<!-- ══════════════════════ NUTRITION MODAL ══════════════════════ -->
+<div id="nutrition-modal" role="dialog" aria-modal="true" aria-label="Nutrition Facts">
+  <div class="nutrition-box">
+    <div class="nutrition-modal-header">
+      <span>🥗 Nutrition Facts</span>
+      <button id="close-nutrition-modal" aria-label="Close">✕</button>
+    </div>
+    <div class="nutrition-panel" id="nutrition-panel-content"></div>
+  </div>
+</div>
+
 <!-- ══════════════════════ SCRIPT ══════════════════════ -->
 <script>
   // ─────────────────────────────────────────────────────
@@ -1282,6 +1378,8 @@
           }
           // Back-compat: ensure subcategory field exists
           if (!('subcategory' in p)) p.subcategory = null;
+          // Back-compat: ensure nutrition field exists
+          if (!('nutrition' in p)) p.nutrition = null;
           return p;
         });
       }
@@ -1397,6 +1495,64 @@
   function safeImageUrl(url) {
     return (typeof url === "string" && url.startsWith("data:image/")) ? url : null;
   }
+
+  // ─────────────────────────────────────────────────────
+  //  NUTRITION FACTS MODAL
+  // ─────────────────────────────────────────────────────
+  function openNutritionModal(product) {
+    const n = product.nutrition;
+    const panel = getById("nutrition-panel-content");
+
+    // Helper to format a numeric value with a unit, or "—" if absent.
+    const fmt = (val, unit) => (val !== null && val !== undefined) ? `${val}${unit}` : "—";
+
+    let html = `<div class="nf-title">Nutrition Facts</div>`;
+    html += `<div class="nf-serving">${escHtml(product.name)}</div>`;
+    if (n.servingSize) {
+      html += `<div class="nf-serving">Serving size: ${escHtml(n.servingSize)}</div>`;
+    }
+
+    html += `<div class="nf-calories-row">
+      <span class="nf-cal-label">Calories</span>
+      <span class="nf-cal-val">${fmt(n.calories, "")}</span>
+    </div>`;
+
+    html += `<div class="nf-daily-note">% Daily Value*</div>`;
+
+    const rows = [
+      { label: "Total Fat",      val: fmt(n.totalFat, "g"),     sub: false },
+      { label: "Saturated Fat",  val: fmt(n.saturatedFat, "g"), sub: true  },
+      { label: "Trans Fat",      val: fmt(n.transFat, "g"),     sub: true  },
+      { label: "Cholesterol",    val: fmt(n.cholesterol, "mg"), sub: false },
+      { label: "Sodium",         val: fmt(n.sodium, "mg"),      sub: false },
+      { label: "Total Carbohydrate", val: fmt(n.totalCarbs, "g"),  sub: false },
+      { label: "Dietary Fiber",  val: fmt(n.dietaryFiber, "g"), sub: true  },
+      { label: "Total Sugars",   val: fmt(n.totalSugars, "g"),  sub: true  },
+      { label: "Protein",        val: fmt(n.protein, "g"),      sub: false, thick: true },
+    ];
+
+    rows.forEach(r => {
+      const cls = ["nf-row", r.sub ? "sub" : "", r.thick ? "thick" : ""].filter(Boolean).join(" ");
+      html += `<div class="${cls}">
+        <span class="nf-label">${escHtml(r.label)}</span>
+        <span class="nf-val">${escHtml(r.val)}</span>
+      </div>`;
+    });
+
+    panel.innerHTML = html;
+    getById("nutrition-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeNutritionModal() {
+    getById("nutrition-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  getById("close-nutrition-modal").addEventListener("click", closeNutritionModal);
+  getById("nutrition-modal").addEventListener("click", e => {
+    if (e.target === getById("nutrition-modal")) closeNutritionModal();
+  });
 
   // ─────────────────────────────────────────────────────
   //  RENDER MENU
@@ -1517,6 +1673,7 @@
         <div class="product-name">${escHtml(p.name)}</div>
         <div class="product-price">${formatPrice(p.price)}</div>
         ${lowStockBadge}
+        ${p.nutrition ? `<button class="nutrition-btn" aria-label="View nutrition facts for ${escHtml(p.name)}">🥗 Nutrition Facts</button>` : ""}
         <div class="qty-control">
           <button class="qty-btn" data-action="dec" aria-label="Decrease quantity" ${outOfStock ? 'disabled' : ''}>−</button>
           <span class="qty-display" id="qty-${p.id}">${qty}</span>
@@ -1525,6 +1682,12 @@
         <button class="add-btn" ${qty === 0 || outOfStock ? 'disabled' : ''} data-id="${p.id}">
           ${outOfStock ? 'Out of Stock' : qty === 0 ? 'Select quantity' : `Add ${qty} to cart`}
         </button>`);
+
+      // Nutrition button opens the nutrition facts panel.
+      const nutritionBtn = card.querySelector(".nutrition-btn");
+      if (nutritionBtn) {
+        nutritionBtn.addEventListener("click", () => openNutritionModal(p));
+      }
 
       // Qty controls update card-local quantity only.
       // Cart is updated when the user presses "Add ... to cart".
