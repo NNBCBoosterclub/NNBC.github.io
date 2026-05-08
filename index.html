@@ -808,8 +808,24 @@
     #user-chip:hover { background: rgba(255,255,255,0.22); color: #fff; }
     #user-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* ── Name Prompt Modal ── */
-    #name-modal {
+    .user-chip-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      overflow: hidden;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .user-chip-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Auth Modal (Login / Register) ── */
+    #auth-modal {
       display: none;
       position: fixed;
       inset: 0;
@@ -817,22 +833,77 @@
       z-index: 400;
       align-items: center;
       justify-content: center;
+      padding: 1rem;
     }
-    #name-modal.open { display: flex; }
+    #auth-modal.open { display: flex; }
 
-    .name-modal-box {
+    .auth-modal-box {
       background: var(--card-bg);
       border-radius: 16px;
-      width: 92%;
+      width: 100%;
       max-width: 380px;
-      padding: 2rem 1.5rem;
-      text-align: center;
       box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
     }
-    .name-modal-box .nm-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
-    .name-modal-box h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 0.4rem; }
-    .name-modal-box p  { font-size: 0.88rem; color: var(--text-light); margin-bottom: 1.25rem; }
-    .name-modal-box input[type="text"] {
+
+    .auth-modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    #close-auth-modal {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #close-auth-modal:hover { color: var(--accent); }
+
+    .auth-modal-body { padding: 1.5rem; }
+
+    .auth-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 0.6rem;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .auth-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+
+    .auth-field { margin-bottom: 1rem; }
+    .auth-field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .auth-field input {
       width: 100%;
       padding: 0.7rem 0.9rem;
       border: 2px solid var(--border);
@@ -840,11 +911,10 @@
       font-size: 1rem;
       outline: none;
       transition: border-color 0.15s;
-      margin-bottom: 0.75rem;
-      text-align: center;
     }
-    .name-modal-box input:focus { border-color: var(--primary); }
-    #save-name-btn {
+    .auth-field input:focus { border-color: var(--primary); }
+
+    .auth-submit-btn {
       width: 100%;
       padding: 0.75rem;
       background: var(--primary);
@@ -855,19 +925,214 @@
       font-weight: 700;
       cursor: pointer;
       transition: filter 0.15s;
+      margin-bottom: 0.75rem;
+    }
+    .auth-submit-btn:hover { filter: brightness(1.1); }
+
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      min-height: 1.2em;
       margin-bottom: 0.5rem;
     }
-    #save-name-btn:hover { filter: brightness(1.1); }
-    #skip-name-btn {
+
+    .auth-guest-btn {
+      width: 100%;
+      padding: 0.6rem;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .auth-guest-btn:hover { background: var(--bg); border-color: var(--text-light); color: var(--text); }
+
+    /* ── Profile Modal ── */
+    #profile-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 400;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+    }
+    #profile-modal.open { display: flex; }
+
+    .profile-modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      overflow: hidden;
+      margin: auto;
+    }
+
+    .profile-modal-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    #close-profile-modal {
       background: none;
       border: none;
-      color: var(--text-light);
-      font-size: 0.85rem;
+      color: #fff;
+      font-size: 1.4rem;
       cursor: pointer;
-      padding: 0.35rem;
-      text-decoration: underline;
+      line-height: 1;
     }
-    #skip-name-btn:hover { color: var(--text); }
+    #close-profile-modal:hover { color: var(--accent); }
+
+    .profile-section {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .profile-section:last-child { border-bottom: none; }
+
+    .profile-section-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      margin-bottom: 0.85rem;
+    }
+
+    .profile-avatar-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-username { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+
+    .profile-img-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+    .btn-upload-avatar {
+      padding: 0.4rem 0.85rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+      color: var(--text);
+    }
+    .btn-upload-avatar:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .btn-remove-avatar {
+      padding: 0.4rem 0.7rem;
+      background: none;
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--danger);
+      display: none;
+    }
+    .btn-remove-avatar.visible { display: inline-block; }
+    .btn-remove-avatar:hover { background: var(--danger); color: #fff; }
+
+    .nutrition-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .nutrition-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+    }
+    .nutrition-chip-label { font-size: 0.72rem; color: var(--text-light); font-weight: 600; }
+    .nutrition-chip-value { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-top: 0.1rem; }
+
+    .profile-order-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .profile-order-row:last-child { border-bottom: none; }
+
+    .profile-order-id { font-family: monospace; font-size: 0.75rem; color: var(--text-light); flex-shrink: 0; padding-top: 0.1rem; }
+    .profile-order-info { flex: 1; min-width: 0; }
+    .profile-order-items { color: var(--text-light); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .profile-order-total { font-weight: 700; color: var(--primary); flex-shrink: 0; }
+
+    .profile-empty-state { text-align: center; color: var(--text-light); font-size: 0.9rem; padding: 0.5rem 0; }
+
+    .profile-logout-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+    .profile-logout-btn:hover { filter: brightness(1.1); }
+
+    .profile-fav-select {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+      cursor: pointer;
+    }
+    .profile-fav-select:focus { border-color: var(--primary); background: #fff; }
+
+    .profile-most-purchased {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.25rem 0;
+    }
+    .profile-most-purchased-visual { font-size: 2rem; flex-shrink: 0; }
+    .profile-most-purchased-name { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+    .profile-most-purchased-count { font-size: 0.82rem; color: var(--text-light); }
 
     /* ── Buyer row in checkout modal ── */
     .buyer-row {
@@ -1173,8 +1438,9 @@
     <button id="share-btn" aria-label="Share this page">
       📤 <span class="btn-text">Share</span>
     </button>
-    <button id="user-chip" aria-label="Your name / profile">
-      👤 <span id="user-chip-name" class="btn-text">Guest</span>
+    <button id="user-chip" aria-label="Your account / profile">
+      <span class="user-chip-avatar" id="user-chip-avatar">👤</span>
+      <span id="user-chip-name" class="btn-text">Guest</span>
     </button>
     <button id="cart-btn" aria-label="Open cart">
       🛒 <span class="btn-text">Cart</span>
@@ -1286,15 +1552,123 @@
   <p id="print-url-text" style="font-size:0.85rem;color:#666;"></p>
 </div>
 
-<!-- ══════════════════════ NAME PROMPT MODAL ══════════════════════ -->
-<div id="name-modal" role="dialog" aria-modal="true" aria-label="Enter your name">
-  <div class="name-modal-box">
-    <span class="nm-emoji">👋</span>
-    <h2>Welcome to NNBC Snack Bar!</h2>
-    <p>Enter your name so we can include it with your order.</p>
-    <input type="text" id="name-input" placeholder="Your name" maxlength="40" autocomplete="name" />
-    <button id="save-name-btn">Continue →</button>
-    <button id="skip-name-btn">Skip for now</button>
+<!-- ══════════════════════ AUTH MODAL (Login / Register) ══════════════════════ -->
+<div id="auth-modal" role="dialog" aria-modal="true" aria-label="Sign in">
+  <div class="auth-modal-box">
+    <div class="auth-modal-header">
+      <span>👤 Welcome to NNBC</span>
+      <button id="close-auth-modal" aria-label="Close">✕</button>
+    </div>
+    <div class="auth-modal-body">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" data-tab="login">Sign In</button>
+        <button class="auth-tab-btn" data-tab="register">Create Account</button>
+      </div>
+      <!-- Login form -->
+      <div class="auth-form active" id="auth-login-form">
+        <div class="auth-field">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" placeholder="Your username" maxlength="30" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••" autocomplete="current-password" />
+        </div>
+        <div class="auth-error" id="login-error"></div>
+        <button class="auth-submit-btn" id="login-submit-btn">Sign In →</button>
+        <button class="auth-guest-btn" id="auth-guest-btn">Continue as Guest</button>
+      </div>
+      <!-- Register form -->
+      <div class="auth-form" id="auth-register-form">
+        <div class="auth-field">
+          <label for="reg-username">Username</label>
+          <input type="text" id="reg-username" placeholder="Choose a username" maxlength="30" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" placeholder="Create a password" autocomplete="new-password" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-password-confirm">Confirm Password</label>
+          <input type="password" id="reg-password-confirm" placeholder="Repeat password" autocomplete="new-password" />
+        </div>
+        <div class="auth-error" id="reg-error"></div>
+        <button class="auth-submit-btn" id="reg-submit-btn">Create Account →</button>
+        <button class="auth-guest-btn" id="auth-guest-btn-2">Continue as Guest</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ PROFILE MODAL ══════════════════════ -->
+<div id="profile-modal" role="dialog" aria-modal="true" aria-label="My Profile">
+  <div class="profile-modal-box">
+    <div class="profile-modal-header">
+      <span>👤 My Profile</span>
+      <button id="close-profile-modal" aria-label="Close">✕</button>
+    </div>
+    <!-- Avatar & Username -->
+    <div class="profile-section">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="profile-avatar-display">👤</div>
+        <div class="profile-username" id="profile-username-display"></div>
+        <div class="profile-img-actions">
+          <label class="btn-upload-avatar" tabindex="0" role="button">
+            📷 Change Photo
+            <input type="file" id="profile-img-upload" accept="image/*" style="display:none" />
+          </label>
+          <button class="btn-remove-avatar" id="btn-remove-avatar">✕ Remove</button>
+        </div>
+      </div>
+    </div>
+    <!-- Favorite item -->
+    <div class="profile-section">
+      <div class="profile-section-title">⭐ Favorite Item</div>
+      <select class="profile-fav-select" id="profile-fav-select">
+        <option value="">— Select a favorite —</option>
+      </select>
+    </div>
+    <!-- Most purchased -->
+    <div class="profile-section">
+      <div class="profile-section-title">🏆 Most Purchased</div>
+      <div id="profile-most-purchased-content">
+        <div class="profile-empty-state">No purchases yet.</div>
+      </div>
+    </div>
+    <!-- Weekly nutrition -->
+    <div class="profile-section">
+      <div class="profile-section-title">📊 This Week's Nutrition</div>
+      <div class="nutrition-summary-grid">
+        <div class="nutrition-chip">
+          <div class="nutrition-chip-label">🔥 Calories</div>
+          <div class="nutrition-chip-value" id="pn-calories">—</div>
+        </div>
+        <div class="nutrition-chip">
+          <div class="nutrition-chip-label">🥩 Protein</div>
+          <div class="nutrition-chip-value" id="pn-protein">—</div>
+        </div>
+        <div class="nutrition-chip">
+          <div class="nutrition-chip-label">🍞 Carbs</div>
+          <div class="nutrition-chip-value" id="pn-carbs">—</div>
+        </div>
+        <div class="nutrition-chip">
+          <div class="nutrition-chip-label">🥑 Fat</div>
+          <div class="nutrition-chip-value" id="pn-fat">—</div>
+        </div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-light);margin-top:0.6rem;">Based on items with nutrition info, last 7 days.</div>
+    </div>
+    <!-- Order history -->
+    <div class="profile-section">
+      <div class="profile-section-title">📋 Purchase History</div>
+      <div id="profile-orders-list">
+        <div class="profile-empty-state">No orders yet.</div>
+      </div>
+    </div>
+    <!-- Logout -->
+    <div class="profile-section">
+      <button class="profile-logout-btn" id="profile-logout-btn">Log Out</button>
+    </div>
   </div>
 </div>
 
@@ -1395,24 +1769,128 @@
   }
 
   // ─────────────────────────────────────────────────────
-  //  USER PROFILE (device recognition)
+  //  USER ACCOUNTS (username + password, localStorage only)
   // ─────────────────────────────────────────────────────
-  // User identity is per-browser, not shared across devices.
+  // Accounts are stored device-locally with hashed passwords (SHA-256 + salt).
+  // USER_KEY stores the active session: { username } for logged-in users,
+  // { guest: true } for dismissed-guest sessions, or nothing for new visitors.
+  const ACCOUNTS_KEY = "nnbc_accounts";
+
+  async function hashPassword(pw) {
+    const enc  = new TextEncoder();
+    const data = enc.encode("nnbc_user_salt_2024:" + pw);
+    const buf  = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function loadAccounts() {
+    try {
+      const s = localStorage.getItem(ACCOUNTS_KEY);
+      return s ? JSON.parse(s) : [];
+    } catch(e) { return []; }
+  }
+
+  function saveAccounts(accounts) {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  }
+
+  function findAccount(username) {
+    return loadAccounts().find(a => a.username.toLowerCase() === username.toLowerCase());
+  }
+
+  async function createAccount(username, password) {
+    // Returns null on success, error string on failure.
+    const accounts = loadAccounts();
+    if (accounts.find(a => a.username.toLowerCase() === username.toLowerCase())) {
+      return "Username already taken.";
+    }
+    const passwordHash = await hashPassword(password);
+    accounts.push({ username, passwordHash, profileImageUrl: null, favoriteItemId: null, createdAt: Date.now() });
+    saveAccounts(accounts);
+    return null;
+  }
+
+  async function authenticateUser(username, password) {
+    const acc = findAccount(username);
+    if (!acc) return false;
+    return (await hashPassword(password)) === acc.passwordHash;
+  }
+
+  function updateAccountField(username, updates) {
+    const accounts = loadAccounts();
+    const i = accounts.findIndex(a => a.username.toLowerCase() === username.toLowerCase());
+    if (i >= 0) { Object.assign(accounts[i], updates); saveAccounts(accounts); }
+  }
+
   function loadUser() {
     try {
       const s = localStorage.getItem(USER_KEY);
       return s ? JSON.parse(s) : null;
-    } catch (e) { return null; }
+    } catch(e) { return null; }
   }
 
   function saveUser(user) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
 
-  function getDisplayName() {
-    // Single source for "Guest" fallback used across checkout + receipts.
+  function getCurrentUsername() {
     const u = loadUser();
-    return (u && u.name) ? u.name : GUEST_NAME;
+    return (u && u.username) ? u.username : null;
+  }
+
+  function getCurrentAccount() {
+    const uname = getCurrentUsername();
+    return uname ? findAccount(uname) : null;
+  }
+
+  function getDisplayName() {
+    const u = loadUser();
+    if (!u) return GUEST_NAME;
+    if (u.username) return u.username;
+    if (u.name) return u.name;       // legacy named-guest support
+    return GUEST_NAME;
+  }
+
+  function getUserOrders(username) {
+    // Match by stored username field (new) or legacy buyerName match.
+    return loadOrders().filter(o =>
+      o.username === username ||
+      (!o.username && o.buyerName && o.buyerName.toLowerCase() === username.toLowerCase())
+    );
+  }
+
+  function getWeeklyNutrition(username) {
+    const weekAgo   = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const weekOrders = getUserOrders(username).filter(o => o.ts >= weekAgo);
+    const tot = { calories: 0, protein: 0, totalFat: 0, totalCarbs: 0 };
+    weekOrders.forEach(order => {
+      order.items.forEach(item => {
+        const p = products.find(p => p.id === item.id);
+        if (p && p.nutrition) {
+          tot.calories   += (p.nutrition.calories   || 0) * item.qty;
+          tot.protein    += (p.nutrition.protein    || 0) * item.qty;
+          tot.totalFat   += (p.nutrition.totalFat   || 0) * item.qty;
+          tot.totalCarbs += (p.nutrition.totalCarbs || 0) * item.qty;
+        }
+      });
+    });
+    return tot;
+  }
+
+  function getMostPurchasedItem(username) {
+    const counts = {};
+    getUserOrders(username).forEach(order =>
+      order.items.forEach(item => {
+        counts[item.id] = (counts[item.id] || 0) + item.qty;
+      })
+    );
+    let topId = null, topCount = 0;
+    Object.entries(counts).forEach(([id, c]) => {
+      if (c > topCount) { topCount = c; topId = +id; }
+    });
+    if (!topId) return null;
+    const p = products.find(p => p.id === topId);
+    return p ? { product: p, count: topCount } : null;
   }
 
   // ─────────────────────────────────────────────────────
@@ -1446,6 +1924,7 @@
       id,
       ts: Date.now(),
       buyerName: getDisplayName(),
+      username: getCurrentUsername(),
       items,
       total,
       method,
@@ -1840,8 +2319,9 @@
     const entries = Object.entries(cart).filter(([,q]) => q > 0);
     const total   = cartTotal();
 
-    // Populate buyer name
+    // Populate buyer name and adjust the change-button label
     getById("checkout-buyer-name").textContent = getDisplayName();
+    getById("change-name-btn").textContent = getCurrentUsername() ? "👤 Profile" : "✏️ Sign In";
 
     const list = getById("modal-order-list");
     list.innerHTML = "";
@@ -1871,41 +2351,321 @@
   });
 
   // ─────────────────────────────────────────────────────
-  //  NAME PROMPT MODAL
+  //  USER CHIP
   // ─────────────────────────────────────────────────────
   function updateUserChip() {
     getById("user-chip-name").textContent = getDisplayName();
+    const avatarEl  = getById("user-chip-avatar");
+    const account   = getCurrentAccount();
+    avatarEl.innerHTML = "";
+    if (account && account.profileImageUrl && safeImageUrl(account.profileImageUrl)) {
+      const img = document.createElement("img");
+      img.src = account.profileImageUrl;
+      img.alt = account.username;
+      avatarEl.appendChild(img);
+    } else if (account) {
+      avatarEl.textContent = account.username.charAt(0).toUpperCase();
+    } else {
+      avatarEl.textContent = "👤";
+    }
   }
 
-  function openNameModal() {
-    const u = loadUser();
-    getById("name-input").value = (u && u.name) ? u.name : "";
-    getById("name-modal").classList.add("open");
+  // ─────────────────────────────────────────────────────
+  //  AUTH MODAL (Login / Register)
+  // ─────────────────────────────────────────────────────
+  function openAuthModal(defaultTab) {
+    getById("auth-modal").classList.add("open");
     document.body.style.overflow = "hidden";
-    setTimeout(() => getById("name-input").focus(), 50);
+    getById("login-error").textContent = "";
+    getById("reg-error").textContent   = "";
+    switchAuthTab(defaultTab || "login");
   }
 
-  function closeNameModal() {
-    getById("name-modal").classList.remove("open");
+  function closeAuthModal() {
+    getById("auth-modal").classList.remove("open");
     document.body.style.overflow = "";
   }
 
-  function saveName() {
-    const name = getById("name-input").value.trim();
-    if (!name) { getById("name-input").focus(); return; }
-    const u = loadUser() || {};
-    u.name = name;
-    saveUser(u);
-    updateUserChip();
-    closeNameModal();
-    showToast("👋 Hi, " + escHtml(name) + "!");
+  function switchAuthTab(tab) {
+    getById("auth-modal").querySelectorAll(".auth-tab-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+    });
+    getById("auth-login-form").classList.toggle("active", tab === "login");
+    getById("auth-register-form").classList.toggle("active", tab === "register");
+    setTimeout(() => {
+      const focusEl = tab === "login" ? "login-username" : "reg-username";
+      getById(focusEl).focus();
+    }, 50);
   }
 
-  getById("save-name-btn").addEventListener("click", saveName);
-  getById("skip-name-btn").addEventListener("click", closeNameModal);
-  getById("name-input").addEventListener("keydown", e => { if (e.key === "Enter") saveName(); });
-  getById("user-chip").addEventListener("click", openNameModal);
-  getById("change-name-btn").addEventListener("click", () => { closeCheckout(); openNameModal(); });
+  getById("close-auth-modal").addEventListener("click", closeAuthModal);
+  getById("auth-modal").addEventListener("click", e => {
+    if (e.target === getById("auth-modal")) closeAuthModal();
+  });
+
+  // Tab switching
+  getById("auth-modal").querySelectorAll(".auth-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchAuthTab(btn.dataset.tab));
+  });
+
+  // Login submit
+  getById("login-submit-btn").addEventListener("click", async () => {
+    const username = getById("login-username").value.trim();
+    const password = getById("login-password").value;
+    getById("login-error").textContent = "";
+    if (!username || !password) {
+      getById("login-error").textContent = "Please enter your username and password.";
+      return;
+    }
+    const ok = await authenticateUser(username, password);
+    if (ok) {
+      saveUser({ username });
+      closeAuthModal();
+      updateUserChip();
+      // Refresh checkout buyer name if checkout is open
+      if (getById("checkout-modal").classList.contains("open")) {
+        getById("checkout-buyer-name").textContent = username;
+        getById("change-name-btn").textContent = "👤 Profile";
+      }
+      showToast("👋 Welcome back, " + escHtml(username) + "!");
+    } else {
+      getById("login-error").textContent = "Incorrect username or password.";
+    }
+  });
+  getById("login-username").addEventListener("keydown", e => { if (e.key === "Enter") getById("login-password").focus(); });
+  getById("login-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("login-submit-btn").click(); });
+
+  // Register submit
+  getById("reg-submit-btn").addEventListener("click", async () => {
+    const username = getById("reg-username").value.trim();
+    const password = getById("reg-password").value;
+    const confirm  = getById("reg-password-confirm").value;
+    getById("reg-error").textContent = "";
+    if (username.length < 2) {
+      getById("reg-error").textContent = "Username must be at least 2 characters.";
+      return;
+    }
+    if (!/^[A-Za-z0-9_.\-]+$/.test(username)) {
+      getById("reg-error").textContent = "Username may only contain letters, numbers, _, ., -";
+      return;
+    }
+    if (password.length < 4) {
+      getById("reg-error").textContent = "Password must be at least 4 characters.";
+      return;
+    }
+    if (password !== confirm) {
+      getById("reg-error").textContent = "Passwords do not match.";
+      return;
+    }
+    const err = await createAccount(username, password);
+    if (err) { getById("reg-error").textContent = err; return; }
+    saveUser({ username });
+    closeAuthModal();
+    updateUserChip();
+    showToast("🎉 Account created! Welcome, " + escHtml(username) + "!");
+  });
+  getById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password").focus(); });
+  getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
+  getById("reg-password-confirm").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-submit-btn").click(); });
+
+  // Guest buttons — mark as prompted so modal doesn't auto-show again
+  const guestAction = () => {
+    if (!loadUser()) saveUser({ guest: true });
+    closeAuthModal();
+  };
+  getById("auth-guest-btn").addEventListener("click", guestAction);
+  getById("auth-guest-btn-2").addEventListener("click", guestAction);
+
+  // User chip click — open profile if logged in, else open auth modal
+  getById("user-chip").addEventListener("click", () => {
+    if (getCurrentUsername()) {
+      openProfileModal();
+    } else {
+      openAuthModal("login");
+    }
+  });
+
+  // Checkout "change" button
+  getById("change-name-btn").addEventListener("click", () => {
+    closeCheckout();
+    if (getCurrentUsername()) {
+      openProfileModal();
+    } else {
+      openAuthModal("login");
+    }
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  PROFILE MODAL
+  // ─────────────────────────────────────────────────────
+  function openProfileModal() {
+    const account = getCurrentAccount();
+    if (!account) { openAuthModal("login"); return; }
+
+    // Username
+    getById("profile-username-display").textContent = account.username;
+
+    // Avatar
+    const avatarEl = getById("profile-avatar-display");
+    avatarEl.innerHTML = "";
+    if (account.profileImageUrl && safeImageUrl(account.profileImageUrl)) {
+      const img = document.createElement("img");
+      img.src = account.profileImageUrl;
+      img.alt = account.username;
+      avatarEl.appendChild(img);
+    } else {
+      avatarEl.textContent = account.username.charAt(0).toUpperCase();
+    }
+    getById("btn-remove-avatar").classList.toggle("visible", !!(account.profileImageUrl));
+
+    // Favorite item select
+    const favSelect = getById("profile-fav-select");
+    favSelect.innerHTML = '<option value="">— Select a favorite —</option>';
+    products.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = (p.emoji || "🛍️") + " " + p.name;
+      if (p.id === account.favoriteItemId) opt.selected = true;
+      favSelect.appendChild(opt);
+    });
+
+    // Most purchased
+    const mp   = getMostPurchasedItem(account.username);
+    const mpEl = getById("profile-most-purchased-content");
+    if (mp) {
+      const p      = mp.product;
+      const imgUrl = safeImageUrl(p.imageUrl);
+      const visual = imgUrl
+        ? `<img src="${p.imageUrl}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;" alt="${escHtml(p.name)}" />`
+        : escHtml(p.emoji || "🛍️");
+      mpEl.innerHTML = `
+        <div class="profile-most-purchased">
+          <div class="profile-most-purchased-visual">${visual}</div>
+          <div>
+            <div class="profile-most-purchased-name">${escHtml(p.name)}</div>
+            <div class="profile-most-purchased-count">Purchased ${mp.count}× total</div>
+          </div>
+        </div>`;
+    } else {
+      mpEl.innerHTML = '<div class="profile-empty-state">No purchases yet.</div>';
+    }
+
+    // Weekly nutrition
+    const nut = getWeeklyNutrition(account.username);
+    getById("pn-calories").textContent = nut.calories   > 0 ? Math.round(nut.calories)   + " kcal" : "—";
+    getById("pn-protein").textContent  = nut.protein    > 0 ? Math.round(nut.protein)    + "g"    : "—";
+    getById("pn-carbs").textContent    = nut.totalCarbs > 0 ? Math.round(nut.totalCarbs) + "g"    : "—";
+    getById("pn-fat").textContent      = nut.totalFat   > 0 ? Math.round(nut.totalFat)   + "g"    : "—";
+
+    // Order history (newest first, cap at 10)
+    const orders   = getUserOrders(account.username);
+    const ordersEl = getById("profile-orders-list");
+    if (orders.length === 0) {
+      ordersEl.innerHTML = '<div class="profile-empty-state">No orders yet.</div>';
+    } else {
+      ordersEl.innerHTML = "";
+      orders.slice(0, 10).forEach(order => {
+        const date     = new Date(order.ts).toLocaleDateString();
+        const itemsStr = order.items.map(i => `${i.qty}× ${i.name}`).join(", ");
+        const row      = document.createElement("div");
+        row.className  = "profile-order-row";
+        row.innerHTML  = `
+          <div class="profile-order-id">${escHtml(order.id)}</div>
+          <div class="profile-order-info">
+            <div style="font-weight:700;font-size:0.85rem;">${escHtml(date)}</div>
+            <div class="profile-order-items">${escHtml(itemsStr)}</div>
+          </div>
+          <div class="profile-order-total">${formatPrice(order.total)}</div>`;
+        ordersEl.appendChild(row);
+      });
+    }
+
+    getById("profile-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeProfileModal() {
+    getById("profile-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  getById("close-profile-modal").addEventListener("click", closeProfileModal);
+  getById("profile-modal").addEventListener("click", e => {
+    if (e.target === getById("profile-modal")) closeProfileModal();
+  });
+
+  // Favorite item change
+  getById("profile-fav-select").addEventListener("change", () => {
+    const uname = getCurrentUsername();
+    if (!uname) return;
+    const val = getById("profile-fav-select").value;
+    updateAccountField(uname, { favoriteItemId: val ? +val : null });
+    showToast("⭐ Favorite saved!");
+  });
+
+  // Profile image upload (compress to 256px JPEG)
+  getById("profile-img-upload").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("⚠️ Image must be under 10 MB");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dataUrl = ev.target.result;
+      if (!safeImageUrl(dataUrl)) return;
+      const uname = getCurrentUsername();
+      if (!uname) return;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 256;
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
+        else        { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL("image/jpeg", 0.8);
+        updateAccountField(uname, { profileImageUrl: compressed });
+        updateUserChip();
+        // Update modal avatar immediately
+        const avatarEl = getById("profile-avatar-display");
+        avatarEl.innerHTML = "";
+        const imgEl = document.createElement("img");
+        imgEl.src = compressed;
+        imgEl.alt = uname;
+        avatarEl.appendChild(imgEl);
+        getById("btn-remove-avatar").classList.add("visible");
+        showToast("📷 Profile photo updated!");
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  });
+
+  // Remove avatar
+  getById("btn-remove-avatar").addEventListener("click", () => {
+    const uname = getCurrentUsername();
+    if (!uname) return;
+    updateAccountField(uname, { profileImageUrl: null });
+    updateUserChip();
+    const avatarEl = getById("profile-avatar-display");
+    avatarEl.innerHTML = "";
+    avatarEl.textContent = uname.charAt(0).toUpperCase();
+    getById("btn-remove-avatar").classList.remove("visible");
+    showToast("Profile photo removed.");
+  });
+
+  // Logout
+  getById("profile-logout-btn").addEventListener("click", () => {
+    localStorage.removeItem(USER_KEY);
+    closeProfileModal();
+    updateUserChip();
+    showToast("👋 Logged out.");
+  });
 
   // ─────────────────────────────────────────────────────
   //  CASH RECEIPT MODAL
@@ -2127,10 +2887,9 @@
   updateCartUI();
   updateUserChip();
 
-  // Show name prompt on first visit (no name saved yet)
-  const _initUser = loadUser();
-  if (!_initUser || !_initUser.name) {
-    setTimeout(openNameModal, 800);
+  // Show auth modal on first visit (no session stored yet)
+  if (!loadUser()) {
+    setTimeout(() => openAuthModal("login"), 800);
   }
 </script>
 </body>
