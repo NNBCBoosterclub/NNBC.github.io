@@ -1158,6 +1158,85 @@
     .nf-row:last-child { border-bottom: none; }
     .nf-label { }
     .nf-val   { font-weight: 700; }
+
+    /* ── Allergen section in nutrition modal ── */
+    .nf-allergy {
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 3px solid #000;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .nf-allergy strong { display: block; margin-bottom: 0.1rem; }
+
+    /* ── Product card: inline nutrition summary ── */
+    .product-nutrition-inline {
+      font-size: 0.71rem;
+      color: var(--text-light);
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Product card: allergy badge ── */
+    .product-allergy-badge {
+      font-size: 0.68rem;
+      background: #fff8e1;
+      color: #7a5a00;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      padding: 0.12rem 0.45rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .product-allergy-badge:hover { background: #ffc107; color: #fff; }
+
+    /* ── Cart nutrition & allergy rows ── */
+    .cart-nutrition-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-bottom: 0.35rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .cart-allergy-row {
+      background: #fff8e1;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.78rem;
+      color: #7a5a00;
+      margin-bottom: 0.5rem;
+      display: flex;
+      gap: 0.4rem;
+      align-items: flex-start;
+      line-height: 1.4;
+    }
+
+    /* ── Store status banner ── */
+    .store-status-banner {
+      background: #fff3cd;
+      border-bottom: 2px solid #ffc107;
+      padding: 0.6rem 1.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #7a5a00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .store-status-banner.restocked {
+      background: #edfaf1;
+      border-bottom-color: var(--success);
+      color: #1a7a40;
+    }
   </style>
 </head>
 <body>
@@ -1183,6 +1262,9 @@
   </div>
 </header>
 
+<!-- ══════════════════════ STORE STATUS BANNER ══════════════════════ -->
+<div id="store-status-banner" class="store-status-banner" style="display:none" aria-live="polite"></div>
+
 <!-- ══════════════════════ MAIN ══════════════════════ -->
 <main>
   <h2 class="section-title">Menu</h2>
@@ -1203,6 +1285,8 @@
   </div>
   <div class="cart-items" id="cart-items"></div>
   <div class="cart-footer">
+    <div id="cart-nutrition-summary" class="cart-nutrition-row" style="display:none"></div>
+    <div id="cart-allergy-warning" class="cart-allergy-row" style="display:none"></div>
     <div class="cart-total-row">
       <span>Total</span>
       <span id="cart-total">$0.00</span>
@@ -1232,6 +1316,8 @@
         <span>Total Due</span>
         <span id="modal-total"></span>
       </div>
+      <div id="checkout-nutrition-summary" style="display:none;font-size:0.82rem;color:var(--text-light);padding:0.4rem 0 0.5rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;"></div>
+      <div id="checkout-allergy-warning" class="venmo-warning" style="display:none;"></div>
       <div class="venmo-account-box">
         <div class="v-label">Pay this Venmo account</div>
         <div class="v-name" id="venmo-display-name"></div>
@@ -1380,6 +1466,8 @@
           if (!('subcategory' in p)) p.subcategory = null;
           // Back-compat: ensure nutrition field exists
           if (!('nutrition' in p)) p.nutrition = null;
+          // Back-compat: ensure allergies field exists
+          if (!('allergies' in p)) p.allergies = null;
           return p;
         });
       }
@@ -1508,36 +1596,49 @@
 
     let html = `<div class="nf-title">Nutrition Facts</div>`;
     html += `<div class="nf-serving">${escHtml(product.name)}</div>`;
-    if (n.servingSize) {
-      html += `<div class="nf-serving">Serving size: ${escHtml(n.servingSize)}</div>`;
+
+    if (n) {
+      if (n.servingSize) {
+        html += `<div class="nf-serving">Serving size: ${escHtml(n.servingSize)}</div>`;
+      }
+
+      html += `<div class="nf-calories-row">
+        <span class="nf-cal-label">Calories</span>
+        <span class="nf-cal-val">${fmt(n.calories, "")}</span>
+      </div>`;
+
+      html += `<div class="nf-daily-note">% Daily Value*</div>`;
+
+      const rows = [
+        { label: "Total Fat",          val: fmt(n.totalFat,      "g"),  sub: false },
+        { label: "Saturated Fat",      val: fmt(n.saturatedFat,  "g"),  sub: true  },
+        { label: "Trans Fat",          val: fmt(n.transFat,      "g"),  sub: true  },
+        { label: "Cholesterol",        val: fmt(n.cholesterol,   "mg"), sub: false },
+        { label: "Sodium",             val: fmt(n.sodium,        "mg"), sub: false },
+        { label: "Total Carbohydrate", val: fmt(n.totalCarbs,    "g"),  sub: false },
+        { label: "Dietary Fiber",      val: fmt(n.dietaryFiber,  "g"),  sub: true  },
+        { label: "Total Sugars",       val: fmt(n.totalSugars,   "g"),  sub: true  },
+        { label: "Protein",            val: fmt(n.protein,       "g"),  sub: false, thick: true },
+      ];
+
+      rows.forEach(r => {
+        const cls = ["nf-row", r.sub ? "sub" : "", r.thick ? "thick" : ""].filter(Boolean).join(" ");
+        html += `<div class="${cls}">
+          <span class="nf-label">${escHtml(r.label)}</span>
+          <span class="nf-val">${escHtml(r.val)}</span>
+        </div>`;
+      });
+    } else {
+      html += `<div style="padding:0.75rem 0;color:#555;font-size:0.85rem;">Nutrition information not available for this item.</div>`;
     }
 
-    html += `<div class="nf-calories-row">
-      <span class="nf-cal-label">Calories</span>
-      <span class="nf-cal-val">${fmt(n.calories, "")}</span>
-    </div>`;
-
-    html += `<div class="nf-daily-note">% Daily Value*</div>`;
-
-    const rows = [
-      { label: "Total Fat",      val: fmt(n.totalFat, "g"),     sub: false },
-      { label: "Saturated Fat",  val: fmt(n.saturatedFat, "g"), sub: true  },
-      { label: "Trans Fat",      val: fmt(n.transFat, "g"),     sub: true  },
-      { label: "Cholesterol",    val: fmt(n.cholesterol, "mg"), sub: false },
-      { label: "Sodium",         val: fmt(n.sodium, "mg"),      sub: false },
-      { label: "Total Carbohydrate", val: fmt(n.totalCarbs, "g"),  sub: false },
-      { label: "Dietary Fiber",  val: fmt(n.dietaryFiber, "g"), sub: true  },
-      { label: "Total Sugars",   val: fmt(n.totalSugars, "g"),  sub: true  },
-      { label: "Protein",        val: fmt(n.protein, "g"),      sub: false, thick: true },
-    ];
-
-    rows.forEach(r => {
-      const cls = ["nf-row", r.sub ? "sub" : "", r.thick ? "thick" : ""].filter(Boolean).join(" ");
-      html += `<div class="${cls}">
-        <span class="nf-label">${escHtml(r.label)}</span>
-        <span class="nf-val">${escHtml(r.val)}</span>
+    // Allergen section (always shown if present, regardless of nutrition data)
+    if (product.allergies) {
+      html += `<div class="nf-allergy">
+        <strong>⚠️ Allergen Information:</strong>
+        ${escHtml(product.allergies)}
       </div>`;
-    });
+    }
 
     panel.innerHTML = html;
     getById("nutrition-modal").classList.add("open");
@@ -1669,11 +1770,25 @@
         ? `<div class="stock-badge low">Only ${p.stock} left!</div>`
         : "";
 
+      // Inline calories & protein under the price
+      const calStr  = p.nutrition && p.nutrition.calories != null ? `🔥 ${p.nutrition.calories} cal` : null;
+      const protStr = p.nutrition && p.nutrition.protein  != null ? `💪 ${p.nutrition.protein}g protein` : null;
+      const nutritionInline = (calStr || protStr)
+        ? `<div class="product-nutrition-inline">${[calStr, protStr].filter(Boolean).map(escHtml).join(' · ')}</div>`
+        : '';
+
+      // Allergy badge (click opens nutrition modal for full details)
+      const allergyBadge = p.allergies
+        ? `<button class="product-allergy-badge" aria-label="View allergen info for ${escHtml(p.name)}">⚠️ Contains allergens</button>`
+        : '';
+
       card.insertAdjacentHTML("beforeend", `
         <div class="product-name">${escHtml(p.name)}</div>
         <div class="product-price">${formatPrice(p.price)}</div>
+        ${nutritionInline}
+        ${allergyBadge}
         ${lowStockBadge}
-        ${p.nutrition ? `<button class="nutrition-btn" aria-label="View nutrition facts for ${escHtml(p.name)}">🥗 Nutrition Facts</button>` : ""}
+        ${(p.nutrition || p.allergies) ? `<button class="nutrition-btn" aria-label="View nutrition facts for ${escHtml(p.name)}">🥗 ${p.allergies && !p.nutrition ? 'Allergen Info' : 'Nutrition Facts'}</button>` : ""}
         <div class="qty-control">
           <button class="qty-btn" data-action="dec" aria-label="Decrease quantity" ${outOfStock ? 'disabled' : ''}>−</button>
           <span class="qty-display" id="qty-${p.id}">${qty}</span>
@@ -1687,6 +1802,12 @@
       const nutritionBtn = card.querySelector(".nutrition-btn");
       if (nutritionBtn) {
         nutritionBtn.addEventListener("click", () => openNutritionModal(p));
+      }
+
+      // Allergy badge also opens the nutrition modal (where full allergen info lives).
+      const allergyBadgeBtn = card.querySelector(".product-allergy-badge");
+      if (allergyBadgeBtn) {
+        allergyBadgeBtn.addEventListener("click", () => openNutritionModal(p));
       }
 
       // Qty controls update card-local quantity only.
@@ -1740,6 +1861,35 @@
     return Object.values(cart).reduce((s, q) => s + q, 0);
   }
 
+  function cartNutritionTotals() {
+    let totalCal = 0, totalProt = 0, hasCal = false, hasProt = false;
+    Object.entries(cart).forEach(([id, qty]) => {
+      const p = products.find(p => p.id === +id);
+      if (p && p.nutrition) {
+        if (p.nutrition.calories != null) { totalCal += p.nutrition.calories * qty; hasCal = true; }
+        if (p.nutrition.protein  != null) { totalProt += p.nutrition.protein  * qty; hasProt = true; }
+      }
+    });
+    return {
+      totalCal:  Math.round(totalCal),
+      totalProt: Math.round(totalProt * 10) / 10,
+      hasCal,
+      hasProt,
+    };
+  }
+
+  function cartAllergens() {
+    const set = new Set();
+    Object.entries(cart).forEach(([id, qty]) => {
+      if (qty <= 0) return;
+      const p = products.find(p => p.id === +id);
+      if (p && p.allergies) {
+        p.allergies.split(',').map(a => a.trim()).filter(Boolean).forEach(a => set.add(a));
+      }
+    });
+    return [...set];
+  }
+
   function updateCartUI() {
     // Main cart redraw entry point; call after every cart mutation.
     const count = cartCount();
@@ -1748,6 +1898,34 @@
     badge.style.display = count > 0 ? "flex" : "none";
     getById("cart-total").textContent = formatPrice(cartTotal());
     getById("checkout-btn").disabled = count === 0;
+
+    // Nutrition summary
+    const nutEl = getById("cart-nutrition-summary");
+    if (nutEl) {
+      const { totalCal, totalProt, hasCal, hasProt } = cartNutritionTotals();
+      if (count > 0 && (hasCal || hasProt)) {
+        const parts = [];
+        if (hasCal)  parts.push(`🔥 ${totalCal} cal`);
+        if (hasProt) parts.push(`💪 ${totalProt}g protein`);
+        nutEl.innerHTML = `<span>Cart nutrition total</span><span>${escHtml(parts.join(' · '))}</span>`;
+        nutEl.style.display = "flex";
+      } else {
+        nutEl.style.display = "none";
+      }
+    }
+
+    // Allergen warning
+    const algEl = getById("cart-allergy-warning");
+    if (algEl) {
+      const allergens = cartAllergens();
+      if (count > 0 && allergens.length > 0) {
+        algEl.innerHTML = `<span>⚠️</span><span><strong>Allergens in cart:</strong> ${escHtml(allergens.join(', '))}</span>`;
+        algEl.style.display = "flex";
+      } else {
+        algEl.style.display = "none";
+      }
+    }
+
     renderCartItems();
   }
 
@@ -1856,6 +2034,35 @@
     getById("modal-total").textContent       = formatPrice(total);
     getById("venmo-display-name").textContent = VENMO_DISPLAY;
     getById("venmo-handle").textContent       = "@" + VENMO_USERNAME;
+
+    // Nutrition totals
+    const checkoutNutEl = getById("checkout-nutrition-summary");
+    if (checkoutNutEl) {
+      const { totalCal, totalProt, hasCal, hasProt } = cartNutritionTotals();
+      if (hasCal || hasProt) {
+        const parts = [];
+        if (hasCal)  parts.push(`🔥 ${totalCal} cal`);
+        if (hasProt) parts.push(`💪 ${totalProt}g protein`);
+        checkoutNutEl.innerHTML = `<span>Order nutrition total:</span><span>${escHtml(parts.join(' · '))}</span>`;
+        checkoutNutEl.style.display = "flex";
+        checkoutNutEl.style.justifyContent = "space-between";
+      } else {
+        checkoutNutEl.style.display = "none";
+      }
+    }
+
+    // Allergen warning
+    const checkoutAlgEl = getById("checkout-allergy-warning");
+    if (checkoutAlgEl) {
+      const allergens = cartAllergens();
+      if (allergens.length > 0) {
+        checkoutAlgEl.innerHTML = `<span>⚠️</span><span><strong>Allergen notice:</strong> Your order contains items with: ${escHtml(allergens.join(', '))}</span>`;
+        checkoutAlgEl.style.display = "flex";
+      } else {
+        checkoutAlgEl.style.display = "none";
+      }
+    }
+
     getById("checkout-modal").classList.add("open");
   }
 
@@ -2126,6 +2333,43 @@
   renderProducts();
   updateCartUI();
   updateUserChip();
+
+  // ─────────────────────────────────────────────────────
+  //  STORE STATUS BANNER
+  // ─────────────────────────────────────────────────────
+  const STORE_STATUS_KEY = "nnbc_restock_status";
+
+  function loadStoreStatus() {
+    try {
+      const s = localStorage.getItem(STORE_STATUS_KEY);
+      return s ? JSON.parse(s) : null;
+    } catch (e) { return null; }
+  }
+
+  function updateStatusBanner() {
+    const status = loadStoreStatus();
+    const banner = getById("store-status-banner");
+    if (!banner) return;
+    if (!status || !status.state || status.state === "normal") {
+      banner.style.display = "none";
+      return;
+    }
+    banner.style.display = "flex";
+    if (status.state === "ordered") {
+      banner.className = "store-status-banner";
+      banner.innerHTML = `📦 <strong>Items have been ordered</strong> — Restocking in progress, check back soon!`;
+    } else if (status.state === "restocked") {
+      banner.className = "store-status-banner restocked";
+      banner.innerHTML = `✅ <strong>Store has been restocked!</strong> — New items are now available.`;
+    }
+  }
+
+  updateStatusBanner();
+
+  // Refresh banner when localStorage changes (e.g. admin updates from another tab)
+  window.addEventListener("storage", e => {
+    if (e.key === STORE_STATUS_KEY) updateStatusBanner();
+  });
 
   // Show name prompt on first visit (no name saved yet)
   const _initUser = loadUser();
