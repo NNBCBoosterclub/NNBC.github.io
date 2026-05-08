@@ -1285,7 +1285,7 @@
   <div class="header-actions">
     <a href="admin.html" id="admin-btn" aria-label="Admin panel">⚙️ <span class="btn-text">Admin</span></a>
     <button id="scan-btn" aria-label="Scan barcode">
-      📷 <span class="btn-text">Scan</span>
+      <span aria-hidden="true">📷</span> <span class="btn-text">Scan</span>
     </button>
     <button id="share-btn" aria-label="Share this page">
       📤 <span class="btn-text">Share</span>
@@ -2285,15 +2285,25 @@
     setStatus("✅ Added: " + product.name);
   }
 
+  // Normalized barcode lookup map: lowercased barcode string → product.
+  // Rebuilt whenever products array is updated.
+  let barcodeMap = new Map();
+
+  function buildBarcodeMap() {
+    barcodeMap = new Map();
+    products.forEach(p => {
+      if (p.barcode) barcodeMap.set(p.barcode.trim().toLowerCase(), p);
+    });
+  }
+
   function onBarcodeDetected(decodedText) {
     // Normalize whitespace from scan result
-    const scanned = decodedText.trim();
-    // Look up product by barcode (case-insensitive)
-    const match = products.find(p => p.barcode && p.barcode.trim().toLowerCase() === scanned.toLowerCase());
+    const scanned = decodedText.trim().toLowerCase();
+    const match = barcodeMap.get(scanned);
     if (match) {
       addScannedProductToCart(match);
       // Brief pause so the user sees the result before the scanner continues
-      if (html5Scanner) html5Scanner.pause(true);
+      if (html5Scanner) html5Scanner.pause();
       setTimeout(() => {
         if (html5Scanner && scannerRunning) {
           html5Scanner.resume();
@@ -2301,7 +2311,7 @@
         }
       }, 1500);
     } else {
-      setStatus("⚠️ No product found for: " + scanned);
+      setStatus("⚠️ No product found for: " + decodedText.trim());
       setTimeout(() => {
         if (scannerRunning) setStatus("Point camera at a barcode…");
       }, 2000);
@@ -2385,6 +2395,7 @@
 
   buildTabs();
   renderProducts();
+  buildBarcodeMap();
   updateCartUI();
   updateUserChip();
 
