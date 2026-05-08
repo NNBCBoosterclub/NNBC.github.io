@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NNBC Snack Bar</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -1042,6 +1043,7 @@
 
     @media (max-width: 359px) {
       #admin-btn { display: none; }
+      #scan-btn  { display: none; }
       .logo-text { display: none; }
       .header-actions { gap: 0.35rem; }
     }
@@ -1158,6 +1160,118 @@
     .nf-row:last-child { border-bottom: none; }
     .nf-label { }
     .nf-val   { font-weight: 700; }
+
+    /* ── Barcode Scanner button ── */
+    #scan-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: background 0.15s;
+    }
+    #scan-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+    /* ── Barcode Scanner Modal ── */
+    #scanner-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #scanner-modal.open { display: flex; }
+
+    .scanner-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.32);
+      overflow: hidden;
+    }
+
+    .scanner-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.25rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #close-scanner {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 0.1rem;
+    }
+    #close-scanner:hover { color: var(--accent); }
+
+    .scanner-body { padding: 1.25rem; }
+
+    #scanner-viewport {
+      width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+
+    /* ZXing / html5-qrcode injects a video element; style it to fill the box */
+    #scanner-viewport video {
+      width: 100%;
+      display: block;
+      border-radius: 10px;
+    }
+
+    #scanner-viewport #qr-shaded-region {
+      border-radius: 10px;
+    }
+
+    .scanner-status {
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--text-light);
+      margin-top: 0.85rem;
+      min-height: 1.4em;
+    }
+
+    .scanner-hint {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 0.5rem;
+    }
+
+    #scanner-close-btn {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.7rem;
+      background: var(--bg);
+      color: var(--text-light);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    #scanner-close-btn:hover { background: var(--border); }
   </style>
 </head>
 <body>
@@ -1170,6 +1284,9 @@
   </div>
   <div class="header-actions">
     <a href="admin.html" id="admin-btn" aria-label="Admin panel">⚙️ <span class="btn-text">Admin</span></a>
+    <button id="scan-btn" aria-label="Scan barcode">
+      📷 <span class="btn-text">Scan</span>
+    </button>
     <button id="share-btn" aria-label="Share this page">
       📤 <span class="btn-text">Share</span>
     </button>
@@ -1321,6 +1438,22 @@
   </div>
 </div>
 
+<!-- ══════════════════════ BARCODE SCANNER MODAL ══════════════════════ -->
+<div id="scanner-modal" role="dialog" aria-modal="true" aria-label="Barcode Scanner">
+  <div class="scanner-box">
+    <div class="scanner-header">
+      <span>📷 Scan Barcode</span>
+      <button id="close-scanner" aria-label="Close">✕</button>
+    </div>
+    <div class="scanner-body">
+      <div id="scanner-viewport"></div>
+      <p class="scanner-status" id="scanner-status">Starting camera…</p>
+      <p class="scanner-hint">Point the camera at a barcode on any product.</p>
+      <button id="scanner-close-btn">Close Scanner</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════ TOAST ══════════════════════ -->
 <div id="toast"></div>
 
@@ -1380,6 +1513,8 @@
           if (!('subcategory' in p)) p.subcategory = null;
           // Back-compat: ensure nutrition field exists
           if (!('nutrition' in p)) p.nutrition = null;
+          // Back-compat: ensure barcode field exists
+          if (!('barcode' in p)) p.barcode = null;
           return p;
         });
       }
@@ -2111,6 +2246,132 @@
       window.print();
       setTimeout(() => { getById("print-area").style.display = "none"; }, 500);
     });
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  BARCODE SCANNER
+  // ─────────────────────────────────────────────────────
+  // Uses html5-qrcode to access the device camera.
+  // Matches scanned barcodes against product `barcode` field.
+  let html5Scanner = null;
+  let scannerRunning = false;
+
+  function openScannerModal() {
+    getById("scanner-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+    setStatus("Starting camera…");
+    startScanner();
+  }
+
+  function closeScannerModal() {
+    stopScanner();
+    getById("scanner-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function setStatus(msg) {
+    getById("scanner-status").textContent = msg;
+  }
+
+  function addScannedProductToCart(product) {
+    const outOfStock = product.stock === 0;
+    if (outOfStock) {
+      setStatus("⚠️ " + product.name + " is out of stock.");
+      return;
+    }
+    cart[product.id] = (cart[product.id] || 0) + 1;
+    updateCartUI();
+    showToast("✅ " + product.name + " added to cart");
+    setStatus("✅ Added: " + product.name);
+  }
+
+  function onBarcodeDetected(decodedText) {
+    // Normalize whitespace from scan result
+    const scanned = decodedText.trim();
+    // Look up product by barcode (case-insensitive)
+    const match = products.find(p => p.barcode && p.barcode.trim().toLowerCase() === scanned.toLowerCase());
+    if (match) {
+      addScannedProductToCart(match);
+      // Brief pause so the user sees the result before the scanner continues
+      if (html5Scanner) html5Scanner.pause(true);
+      setTimeout(() => {
+        if (html5Scanner && scannerRunning) {
+          html5Scanner.resume();
+          setStatus("Point camera at a barcode…");
+        }
+      }, 1500);
+    } else {
+      setStatus("⚠️ No product found for: " + scanned);
+      setTimeout(() => {
+        if (scannerRunning) setStatus("Point camera at a barcode…");
+      }, 2000);
+    }
+  }
+
+  function startScanner() {
+    if (scannerRunning) return;
+
+    if (!window.Html5Qrcode) {
+      setStatus("⚠️ Scanner library not loaded. Check your connection.");
+      return;
+    }
+
+    // Clear any previous scanner instance
+    const viewport = getById("scanner-viewport");
+    viewport.innerHTML = "";
+
+    html5Scanner = new Html5Qrcode("scanner-viewport");
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 120 },
+      aspectRatio: 1.7,
+      // Support common retail barcode formats + QR
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.ITF,
+      ],
+    };
+
+    html5Scanner.start(
+      { facingMode: "environment" },
+      config,
+      onBarcodeDetected,
+      () => { /* ignore per-frame decode errors */ }
+    ).then(() => {
+      scannerRunning = true;
+      setStatus("Point camera at a barcode…");
+    }).catch(err => {
+      scannerRunning = false;
+      if (err && err.toString().includes("NotAllowedError")) {
+        setStatus("⚠️ Camera permission denied. Please allow camera access and try again.");
+      } else {
+        setStatus("⚠️ Could not start camera. " + (err ? err.toString() : ""));
+      }
+    });
+  }
+
+  function stopScanner() {
+    scannerRunning = false;
+    if (html5Scanner) {
+      html5Scanner.stop().catch(() => {}).finally(() => {
+        html5Scanner = null;
+        const viewport = getById("scanner-viewport");
+        if (viewport) viewport.innerHTML = "";
+      });
+    }
+  }
+
+  getById("scan-btn").addEventListener("click", openScannerModal);
+  getById("close-scanner").addEventListener("click", closeScannerModal);
+  getById("scanner-close-btn").addEventListener("click", closeScannerModal);
+  getById("scanner-modal").addEventListener("click", e => {
+    if (e.target === getById("scanner-modal")) closeScannerModal();
   });
 
   // ─────────────────────────────────────────────────────

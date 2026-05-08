@@ -1026,6 +1026,10 @@
             <input type="text" id="f-emoji" placeholder="🥔" maxlength="4" />
           </div>
           <div class="form-group">
+            <label for="f-barcode">Barcode (optional)</label>
+            <input type="text" id="f-barcode" placeholder="e.g. 012345678905" maxlength="60" autocomplete="off" />
+          </div>
+          <div class="form-group">
             <label for="f-stock">Starting Stock</label>
             <div class="stock-field-wrap">
               <input type="number" id="f-stock" placeholder="e.g. 20" min="0" step="1" />
@@ -1264,6 +1268,8 @@
           if (!('subcategory' in p)) p.subcategory = null;
           // Back-compat: ensure nutrition field exists
           if (!('nutrition' in p)) p.nutrition = null;
+          // Back-compat: ensure barcode field exists
+          if (!('barcode' in p)) p.barcode = null;
           return p;
         });
       }
@@ -1514,6 +1520,7 @@
     $("f-price").value    = p.price;
     $("f-category").value = p.category;
     $("f-emoji").value    = p.emoji || "";
+    $("f-barcode").value  = p.barcode || "";
     setStockField(p.stock !== undefined ? p.stock : null);
     resetImageField(p.imageUrl || null);
     updateSubcategoryField(p.category, p.subcategory || "");
@@ -1570,6 +1577,7 @@
     const price       = parseFloat($("f-price").value);
     const category    = $("f-category").value.trim();
     const emoji       = $("f-emoji").value.trim();
+    const barcode     = $("f-barcode").value.trim() || null;
     const stock       = getStockFieldValue();
     const editId      = $("edit-id").value;
     const subcategory = SUBCATEGORIES[category] ? ($("f-subcategory").value || null) : null;
@@ -1591,7 +1599,7 @@
       if (pendingImageUrl === "")        imageUrl = null;
       else if (pendingImageUrl !== null)  imageUrl = pendingImageUrl;
 
-      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, imageUrl, stock, nutrition };
+      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition };
       saveProducts(list);
       showToast(`✅ "${name}" updated.`);
     } else {
@@ -1602,7 +1610,7 @@
         return;
       }
       const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
-      list.push({ id: nextId(list), name, price, category, subcategory, emoji, imageUrl, stock, nutrition });
+      list.push({ id: nextId(list), name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition });
       saveProducts(list);
       showToast(`✅ "${name}" added to menu.`);
     }
