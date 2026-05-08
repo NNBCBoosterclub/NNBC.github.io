@@ -1774,7 +1774,10 @@
   // Accounts are stored device-locally with hashed passwords (SHA-256 + salt).
   // USER_KEY stores the active session: { username } for logged-in users,
   // { guest: true } for dismissed-guest sessions, or nothing for new visitors.
-  const ACCOUNTS_KEY = "nnbc_accounts";
+  const ACCOUNTS_KEY       = "nnbc_accounts";
+  const MAX_AVATAR_BYTES   = 10 * 1024 * 1024; // 10 MB upload limit
+  const AVATAR_SIZE_PX     = 256;               // max width/height after resize
+  const AVATAR_JPEG_QUALITY = 0.8;              // JPEG compression quality for avatars
 
   async function hashPassword(pw) {
     const enc  = new TextEncoder();
@@ -1847,7 +1850,9 @@
     const u = loadUser();
     if (!u) return GUEST_NAME;
     if (u.username) return u.username;
-    if (u.name) return u.name;       // legacy named-guest support
+    // Legacy: older sessions stored { name } from the previous name-only system.
+    // We keep reading it so returning visitors see their name until they log in or dismiss.
+    if (u.name) return u.name;
     return GUEST_NAME;
   }
 
@@ -2449,8 +2454,8 @@
       getById("reg-error").textContent = "Username may only contain letters, numbers, _, ., -";
       return;
     }
-    if (password.length < 4) {
-      getById("reg-error").textContent = "Password must be at least 4 characters.";
+    if (password.length < 8) {
+      getById("reg-error").textContent = "Password must be at least 8 characters.";
       return;
     }
     if (password !== confirm) {
@@ -2557,8 +2562,8 @@
     getById("pn-carbs").textContent    = nut.totalCarbs > 0 ? Math.round(nut.totalCarbs) + "g"    : "—";
     getById("pn-fat").textContent      = nut.totalFat   > 0 ? Math.round(nut.totalFat)   + "g"    : "—";
 
-    // Order history (newest first, cap at 10)
-    const orders   = getUserOrders(account.username);
+    // Order history — sort newest first, cap at 10
+    const orders   = getUserOrders(account.username).sort((a, b) => b.ts - a.ts);
     const ordersEl = getById("profile-orders-list");
     if (orders.length === 0) {
       ordersEl.innerHTML = '<div class="profile-empty-state">No orders yet.</div>';
@@ -2603,11 +2608,11 @@
     showToast("⭐ Favorite saved!");
   });
 
-  // Profile image upload (compress to 256px JPEG)
+  // Profile image upload — resize to AVATAR_SIZE_PX, compress as JPEG
   getById("profile-img-upload").addEventListener("change", e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_AVATAR_BYTES) {
       showToast("⚠️ Image must be under 10 MB");
       e.target.value = "";
       return;
@@ -2621,13 +2626,12 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const maxDim = 256;
         let w = img.naturalWidth, h = img.naturalHeight;
-        if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
-        else        { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
+        if (w > h) { if (w > AVATAR_SIZE_PX) { h = Math.round(h * AVATAR_SIZE_PX / w); w = AVATAR_SIZE_PX; } }
+        else        { if (h > AVATAR_SIZE_PX) { w = Math.round(w * AVATAR_SIZE_PX / h); h = AVATAR_SIZE_PX; } }
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL("image/jpeg", 0.8);
+        const compressed = canvas.toDataURL("image/jpeg", AVATAR_JPEG_QUALITY);
         updateAccountField(uname, { profileImageUrl: compressed });
         updateUserChip();
         // Update modal avatar immediately
