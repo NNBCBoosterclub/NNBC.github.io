@@ -1825,8 +1825,8 @@
       <!-- Register form -->
         <div class="auth-form" id="auth-register-form">
           <div class="auth-field">
-          <label for="reg-username">Email Address</label>
-          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" required />
+            <label for="reg-username">Email Address</label>
+            <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" required />
           </div>
           <div class="auth-field">
             <label for="reg-password">Password</label>
@@ -2104,10 +2104,10 @@
     return loadAccounts().find(a => a.username.toLowerCase() === username.toLowerCase());
   }
 
-  async function createAccount(username, password, email) {
+  async function createAccount(username, password) {
     // Returns null on success, error string on failure.
     const accounts = loadAccounts();
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = normalizeEmail(username);
     if (accounts.find(a => a.username.toLowerCase() === username.toLowerCase())) {
       return "Username already taken.";
     }
@@ -2893,7 +2893,7 @@
       getById("reg-error").textContent = "Passwords do not match.";
       return;
     }
-    const err = await createAccount(username, password, username);
+    const err = await createAccount(username, password);
     if (err) { getById("reg-error").textContent = err; return; }
     saveUser({ username });
     closeAuthModal();
