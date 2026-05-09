@@ -2485,21 +2485,21 @@
   }
 
   function ensureMenuContainsReceiptItems(productList, receiptItems) {
-    const nextProducts = structuredClone(productList);
     let changed = false;
 
     receiptItems.forEach(entry => {
       const productName = String(entry?.productName || "").trim();
       if (!productName) return;
+      const productNameLower = productName.toLowerCase();
 
-      const match = nextProducts.find(product =>
+      const match = productList.find(product =>
         (Number.isFinite(Number(entry?.productId)) && product.id === Number(entry.productId)) ||
-        product.name.trim().toLowerCase() === productName.toLowerCase()
+        product.name.trim().toLowerCase() === productNameLower
       );
       if (match) return;
 
-      nextProducts.push({
-        id: nextId(nextProducts),
+      productList.push({
+        id: nextId(productList),
         name: productName,
         emoji: "🛍️",
         price: 0,
@@ -2514,7 +2514,7 @@
       changed = true;
     });
 
-    return { nextProducts, changed };
+    return changed;
   }
 
   $("apply-bulk-restock-btn").addEventListener("click", async () => {
@@ -2547,7 +2547,8 @@
       return;
     }
 
-    const { nextProducts, changed: addedFromReceipt } = ensureMenuContainsReceiptItems(prods, restockedItems);
+    const nextProducts = structuredClone(prods);
+    const addedFromReceipt = ensureMenuContainsReceiptItems(nextProducts, restockedItems);
 
     // Save receipt record
     const receipt = {
