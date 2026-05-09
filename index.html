@@ -1825,7 +1825,7 @@
       <!-- Register form -->
         <div class="auth-form" id="auth-register-form">
           <div class="auth-field">
-          <label for="reg-username">Username (Email Address)</label>
+          <label for="reg-username">Email Address (Username)</label>
           <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" required />
           </div>
           <div class="auth-field">
@@ -2899,7 +2899,7 @@
     saveUser({ username });
     closeAuthModal();
     updateUserChip();
-    showToast("🎉 Account created! Welcome, " + escHtml(username) + "!");
+    showToast("🎉 Account created! Welcome!");
   });
   getById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password").focus(); });
   getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
