@@ -1474,12 +1474,15 @@
   // Applies back-compat migrations to a raw product array from any source.
   function normalizeProducts(arr) {
     return arr.map(p => {
-      if (!('stock' in p)) { p.stock = (p.inStock === false) ? 0 : null; delete p.inStock; }
-      if (!('subcategory' in p)) p.subcategory = null;
-      if (!('nutrition'   in p)) p.nutrition   = null;
-      if (!('barcode'     in p)) p.barcode     = null;
-      if (!('allergies'   in p)) p.allergies   = null;
-      return p;
+      const { inStock, ...rest } = p;
+      return {
+        ...rest,
+        stock:       ('stock'       in p) ? p.stock       : (inStock === false ? 0 : null),
+        subcategory: ('subcategory' in p) ? p.subcategory : null,
+        nutrition:   ('nutrition'   in p) ? p.nutrition   : null,
+        barcode:     ('barcode'     in p) ? p.barcode     : null,
+        allergies:   ('allergies'   in p) ? p.allergies   : null,
+      };
     });
   }
 
@@ -1509,8 +1512,10 @@
     if (!infoRes.ok) throw new Error("Could not read file info (HTTP " + infoRes.status + ").");
     const { sha } = await infoRes.json();
 
-    // btoa() does not handle non-ASCII (emojis); encodeURIComponent+unescape bridges the gap.
-    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))));
+    // TextEncoder produces a proper UTF-8 byte sequence for emoji and other non-ASCII.
+    const bytes = new TextEncoder().encode(JSON.stringify(list, null, 2));
+    const binStr = Array.from(bytes, b => String.fromCharCode(b)).join("");
+    const b64 = btoa(binStr);
 
     const putRes = await fetch(GITHUB_API_URL, {
       method: "PUT",

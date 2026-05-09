@@ -2084,12 +2084,15 @@
     if (!res.ok) throw new Error("HTTP " + res.status);
     const parsed = await res.json();
     return parsed.map(p => {
-      if (!('stock'       in p)) { p.stock = (p.inStock === false) ? 0 : null; delete p.inStock; }
-      if (!('subcategory' in p)) p.subcategory = null;
-      if (!('nutrition'   in p)) p.nutrition   = null;
-      if (!('barcode'     in p)) p.barcode     = null;
-      if (!('allergies'   in p)) p.allergies   = null;
-      return p;
+      const { inStock, ...rest } = p;
+      return {
+        ...rest,
+        stock:       ('stock'       in p) ? p.stock       : (inStock === false ? 0 : null),
+        subcategory: ('subcategory' in p) ? p.subcategory : null,
+        nutrition:   ('nutrition'   in p) ? p.nutrition   : null,
+        barcode:     ('barcode'     in p) ? p.barcode     : null,
+        allergies:   ('allergies'   in p) ? p.allergies   : null,
+      };
     });
   }
 
