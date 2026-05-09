@@ -2072,10 +2072,11 @@
   function isValidEmail(email) {
     const normalized = normalizeEmail(email);
     if (!EMAIL_REGEX.test(normalized)) return false;
+    if (normalized.includes("..")) return false;
     const parts = normalized.split("@");
     if (parts.length !== 2) return false;
     const domain = parts[1];
-    return !domain.startsWith(".") && !domain.endsWith(".") && !domain.includes("..");
+    return !domain.startsWith(".") && !domain.endsWith(".");
   }
 
   function loadAccounts() {
@@ -2947,15 +2948,16 @@
   // ─────────────────────────────────────────────────────
   //  PROFILE MODAL
   // ─────────────────────────────────────────────────────
-  function openProfileModal(accountOverride) {
-    const account = accountOverride || getCurrentAccount();
+  function openProfileModal(providedAccount) {
+    const account = providedAccount || getCurrentAccount();
     if (!account) { openAuthModal("login"); return; }
+    const hasEmail = !!account.email;
 
     // Username
     getById("profile-username-display").textContent = account.username;
-    getById("profile-email-display").textContent = account.email || "No email saved yet";
+    getById("profile-email-display").textContent = hasEmail ? account.email : "No email saved yet";
     getById("profile-email-input").value = account.email || "";
-    getById("profile-email-hint").textContent = account.email
+    getById("profile-email-hint").textContent = hasEmail
       ? "Use the field below to update your email."
       : "Add your email to finish setting up this account.";
 
@@ -3038,8 +3040,8 @@
     document.body.style.overflow = "hidden";
   }
 
-  function promptForMissingEmail(accountOverride) {
-    const account = accountOverride || getCurrentAccount();
+  function promptForMissingEmail(providedAccount) {
+    const account = providedAccount || getCurrentAccount();
     if (!account || account.email) return false;
     openProfileModal(account);
     showToast("✉️ Please add your email to finish setting up your account.");
