@@ -2878,7 +2878,6 @@
   // Register submit
   getById("reg-submit-btn").addEventListener("click", async () => {
     const username = getById("reg-username").value.trim();
-    const email = username;
     const password = getById("reg-password").value;
     const confirm  = getById("reg-password-confirm").value;
     getById("reg-error").textContent = "";
@@ -2894,7 +2893,7 @@
       getById("reg-error").textContent = "Passwords do not match.";
       return;
     }
-    const err = await createAccount(username, password, email);
+    const err = await createAccount(username, password, username);
     if (err) { getById("reg-error").textContent = err; return; }
     saveUser({ username });
     closeAuthModal();
