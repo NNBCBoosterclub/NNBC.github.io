@@ -1826,7 +1826,7 @@
         <div class="auth-form" id="auth-register-form">
           <div class="auth-field">
           <label for="reg-username">Username (Email Address)</label>
-          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" aria-required="true" required />
+          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" required />
           </div>
           <div class="auth-field">
             <label for="reg-password">Password</label>
@@ -2882,12 +2882,12 @@
     const password = getById("reg-password").value;
     const confirm  = getById("reg-password-confirm").value;
     getById("reg-error").textContent = "";
-    if (password.length < 8) {
-      getById("reg-error").textContent = "Password must be at least 8 characters.";
-      return;
-    }
     if (!isValidEmail(username)) {
       getById("reg-error").textContent = "Please enter a valid email address as your username.";
+      return;
+    }
+    if (password.length < 8) {
+      getById("reg-error").textContent = "Password must be at least 8 characters.";
       return;
     }
     if (password !== confirm) {
