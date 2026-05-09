@@ -2109,7 +2109,7 @@
     const accounts = loadAccounts();
     const normalizedEmail = normalizeEmail(username);
     if (accounts.find(a => a.username.toLowerCase() === username.toLowerCase())) {
-      return "Username already taken.";
+      return "An account with this email address already exists.";
     }
     if (!isValidEmail(normalizedEmail)) {
       return "Please enter a valid email address.";
