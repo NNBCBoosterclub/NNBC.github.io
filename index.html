@@ -1823,23 +1823,19 @@
         <button class="auth-guest-btn" id="auth-guest-btn">Continue as Guest</button>
       </div>
       <!-- Register form -->
-      <div class="auth-form" id="auth-register-form">
-        <div class="auth-field">
-          <label for="reg-username">Username</label>
-          <input type="text" id="reg-username" placeholder="Choose a username" maxlength="30" autocomplete="username" />
-        </div>
-        <div class="auth-field">
-          <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" placeholder="Create a password" autocomplete="new-password" />
-        </div>
-        <div class="auth-field">
-          <label for="reg-email">Email</label>
-          <input type="email" id="reg-email" placeholder="name@example.com" autocomplete="email" aria-required="true" required />
-        </div>
-        <div class="auth-field">
-          <label for="reg-password-confirm">Confirm Password</label>
-          <input type="password" id="reg-password-confirm" placeholder="Repeat password" autocomplete="new-password" />
-        </div>
+        <div class="auth-form" id="auth-register-form">
+          <div class="auth-field">
+          <label for="reg-username">Username (Email Address)</label>
+          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="username" />
+          </div>
+          <div class="auth-field">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" placeholder="Create a password" autocomplete="new-password" />
+          </div>
+          <div class="auth-field">
+            <label for="reg-password-confirm">Confirm Password</label>
+            <input type="password" id="reg-password-confirm" placeholder="Repeat password" autocomplete="new-password" />
+          </div>
         <div class="auth-error" id="reg-error"></div>
         <button class="auth-submit-btn" id="reg-submit-btn">Create Account →</button>
         <button class="auth-guest-btn" id="auth-guest-btn-2">Continue as Guest</button>
@@ -2883,30 +2879,21 @@
   getById("reg-submit-btn").addEventListener("click", async () => {
     const username = getById("reg-username").value.trim();
     const password = getById("reg-password").value;
-    const email    = getById("reg-email").value;
     const confirm  = getById("reg-password-confirm").value;
     getById("reg-error").textContent = "";
-    if (username.length < 2) {
-      getById("reg-error").textContent = "Username must be at least 2 characters.";
-      return;
-    }
-    if (!/^[A-Za-z0-9_.\-]+$/.test(username)) {
-      getById("reg-error").textContent = "Username may only contain letters, numbers, _, ., -";
-      return;
-    }
     if (password.length < 8) {
       getById("reg-error").textContent = "Password must be at least 8 characters.";
       return;
     }
-    if (!isValidEmail(email)) {
-      getById("reg-error").textContent = "Please enter a valid email address.";
+    if (!isValidEmail(username)) {
+      getById("reg-error").textContent = "Please enter a valid email address as your username.";
       return;
     }
     if (password !== confirm) {
       getById("reg-error").textContent = "Passwords do not match.";
       return;
     }
-    const err = await createAccount(username, password, email);
+    const err = await createAccount(username, password, username);
     if (err) { getById("reg-error").textContent = err; return; }
     saveUser({ username });
     closeAuthModal();
@@ -2914,8 +2901,7 @@
     showToast("🎉 Account created! Welcome, " + escHtml(username) + "!");
   });
   getById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password").focus(); });
-  getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-email").focus(); });
-  getById("reg-email").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
+  getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
   getById("reg-password-confirm").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-submit-btn").click(); });
 
   // Guest buttons — mark as prompted so modal doesn't auto-show again
