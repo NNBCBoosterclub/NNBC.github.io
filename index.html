@@ -2064,7 +2064,47 @@
 
   function saveProducts(list) {
     // Central save path so all write behavior stays consistent.
+    // Products are saved to localStorage for local stock tracking only.
+    // The canonical catalog is managed by the admin via GitHub (products.json).
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  GLOBAL PRODUCT CATALOG (products.json on GitHub)
+  // ─────────────────────────────────────────────────────
+  // The authoritative product list is stored in products.json in this repository
+  // so that every visitor sees the same catalog regardless of their device.
+  // On page load, we fetch it and update the in-memory list. The localStorage
+  // copy acts as a fast first-paint fallback and a place to track local stock
+  // decrements (customer purchases) within a session.
+  const PRODUCTS_RAW_URL = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main/products.json";
+
+  async function fetchProductsFromServer() {
+    const res = await fetch(PRODUCTS_RAW_URL + "?t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const parsed = await res.json();
+    return parsed.map(p => {
+      if (!('stock'       in p)) { p.stock = (p.inStock === false) ? 0 : null; delete p.inStock; }
+      if (!('subcategory' in p)) p.subcategory = null;
+      if (!('nutrition'   in p)) p.nutrition   = null;
+      if (!('barcode'     in p)) p.barcode     = null;
+      if (!('allergies'   in p)) p.allergies   = null;
+      return p;
+    });
+  }
+
+  async function initProductsFromServer() {
+    try {
+      const fresh = await fetchProductsFromServer();
+      // Cache for offline fallback on subsequent loads.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      products = fresh;
+      buildTabs();
+      renderProducts();
+      buildBarcodeMap();
+    } catch (e) {
+      console.warn("Could not fetch products from server:", e);
+    }
   }
 
   // ─────────────────────────────────────────────────────
@@ -3516,6 +3556,9 @@
   buildBarcodeMap();
   updateCartUI();
   updateUserChip();
+  // Fetch the latest catalog from GitHub so all visitors see the same items.
+  // The synchronous render above provides an instant first paint from cache.
+  initProductsFromServer();
   const currentUser = loadUser();
   const currentAccount = currentUser && currentUser.username ? findAccount(currentUser.username) : null;
   if (currentAccount && !currentAccount.email) {

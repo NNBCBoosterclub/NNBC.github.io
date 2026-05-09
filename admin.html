@@ -1124,6 +1124,27 @@
       <div class="error-msg" id="pin-change-error"></div>
     </div>
 
+    <!-- ── GitHub Sync ── -->
+    <div class="card" style="margin-top:1rem;">
+      <p style="font-size:0.9rem;font-weight:700;color:var(--primary);margin-bottom:0.4rem;">🌐 GitHub Sync Token</p>
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.75rem;">
+        Products are stored in <code>products.json</code> in this repository so every visitor sees the same catalog.
+        To publish changes you make here, create a
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer"
+           style="color:var(--primary);">fine-grained Personal Access Token</a>
+        with <strong>Contents: Read and write</strong> access to the <strong>NNBCBoosterclub/NNBC</strong> repository,
+        then paste it below. The token is stored only in this browser and is never shared.
+      </p>
+      <div class="pin-row">
+        <input type="password" id="github-token-input" placeholder="github_pat_…" autocomplete="off"
+               style="font-family:monospace;letter-spacing:0.05em;" />
+        <button type="button" class="btn-save" id="save-token-btn">Save Token</button>
+        <button type="button" class="btn-danger" id="clear-token-btn"
+                style="padding:0.55rem 0.9rem;font-size:0.85rem;">Clear</button>
+      </div>
+      <div id="token-status" style="font-size:0.85rem;margin-top:0.4rem;min-height:1.2em;"></div>
+    </div>
+
     <!-- ── Danger Zone ── -->
     <div class="danger-zone">
       <h3>⚠️ Danger Zone</h3>
@@ -1357,6 +1378,7 @@
       $("admin-panel").style.display = "block";
       renderProductList();
       renderOrders();
+      initProductsFromServer(); // pull latest catalog from GitHub in the background
     }
   }
 
@@ -1433,29 +1455,97 @@
     { id: 20, name: "Miscellaneous",  emoji: "🛍️", price: 1.00, category: "Other", subcategory: null,     imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
   ];
 
+  // ─────────────────────────────────────────────────────
+  //  GITHUB SYNC
+  // ─────────────────────────────────────────────────────
+  // Products are stored in products.json in this repository so every visitor
+  // sees the same catalog. The admin saves a fine-grained GitHub PAT once;
+  // it is kept only in this browser's localStorage and is never committed.
+  const GITHUB_TOKEN_KEY = "nnbc_github_token";
+  const GITHUB_API_URL   = "https://api.github.com/repos/NNBCBoosterclub/NNBC/contents/products.json";
+  const PRODUCTS_RAW_URL = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main/products.json";
+
+  function getGitHubToken() { return localStorage.getItem(GITHUB_TOKEN_KEY) || ""; }
+  function setGitHubToken(t) {
+    if (t) localStorage.setItem(GITHUB_TOKEN_KEY, t.trim());
+    else   localStorage.removeItem(GITHUB_TOKEN_KEY);
+  }
+
+  // Applies back-compat migrations to a raw product array from any source.
+  function normalizeProducts(arr) {
+    return arr.map(p => {
+      if (!('stock' in p)) { p.stock = (p.inStock === false) ? 0 : null; delete p.inStock; }
+      if (!('subcategory' in p)) p.subcategory = null;
+      if (!('nutrition'   in p)) p.nutrition   = null;
+      if (!('barcode'     in p)) p.barcode     = null;
+      if (!('allergies'   in p)) p.allergies   = null;
+      return p;
+    });
+  }
+
+  // Fetches the live catalog from raw.githubusercontent.com (updates within
+  // seconds of a GitHub API commit, no Pages rebuild needed).
+  async function fetchProductsFromServer() {
+    const res = await fetch(PRODUCTS_RAW_URL + "?t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return normalizeProducts(await res.json());
+  }
+
+  // Commits the product list to products.json on the main branch via GitHub API.
+  // Requires a fine-grained PAT with Contents: Read and write access to this repo.
+  async function pushProductsToGitHub(list) {
+    const token = getGitHubToken();
+    if (!token) throw new Error("No GitHub token configured.");
+
+    const headers = {
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+
+    // GitHub API requires the current blob SHA when updating an existing file.
+    const infoRes = await fetch(GITHUB_API_URL, { headers });
+    if (!infoRes.ok) throw new Error("Could not read file info (HTTP " + infoRes.status + ").");
+    const { sha } = await infoRes.json();
+
+    // btoa() does not handle non-ASCII (emojis); encodeURIComponent+unescape bridges the gap.
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))));
+
+    const putRes = await fetch(GITHUB_API_URL, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        message: "Update product catalog via admin panel",
+        content: b64,
+        sha,
+        branch: "main",
+      }),
+    });
+    if (!putRes.ok) {
+      const err = await putRes.json().catch(() => ({}));
+      throw new Error(err.message || "GitHub API error (HTTP " + putRes.status + ").");
+    }
+  }
+
+  // Pulls the latest catalog from GitHub, updates the local cache, and re-renders.
+  // Called automatically when the admin panel opens.
+  async function initProductsFromServer() {
+    try {
+      const fresh = await fetchProductsFromServer();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      renderProductList();
+    } catch (e) {
+      console.warn("Could not fetch products from server:", e);
+    }
+  }
+
   // Reads menu data and performs schema migration for older saved payloads.
+  // Falls back to the server-cached copy in localStorage, then to DEFAULT_PRODUCTS.
   function loadProducts() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Back-compat: convert old boolean inStock field to stock field
-        return parsed.map(p => {
-          if (!('stock' in p)) {
-            p.stock = (p.inStock === false) ? 0 : null;
-            delete p.inStock;
-          }
-          // Back-compat: ensure subcategory field exists
-          if (!('subcategory' in p)) p.subcategory = null;
-          // Back-compat: ensure nutrition field exists
-          if (!('nutrition' in p)) p.nutrition = null;
-          // Back-compat: ensure barcode field exists
-          if (!('barcode' in p)) p.barcode = null;
-          // Back-compat: ensure allergies field exists
-          if (!('allergies' in p)) p.allergies = null;
-          return p;
-        });
-      }
+      if (saved) return normalizeProducts(JSON.parse(saved));
     } catch (e) {
       console.warn("Failed to load products:", e);
     }
@@ -1463,8 +1553,16 @@
   }
 
   function saveProducts(list) {
-    // Single save point for product list writes from admin actions.
+    // Write to localStorage immediately so the UI stays responsive.
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    // Then push to GitHub so all visitors see the change on next page load.
+    pushProductsToGitHub(list).catch(err => {
+      console.warn("GitHub sync failed:", err);
+      const msg = getGitHubToken()
+        ? "⚠️ Local save OK, but GitHub sync failed: " + err.message
+        : "⚠️ Saved locally only. Add a GitHub token in Settings → GitHub Sync to publish to all visitors.";
+      showToast(msg, true);
+    });
   }
 
   function nextId(list) {
@@ -2020,11 +2118,38 @@
   });
 
   // ─────────────────────────────────────────────────────
+  //  GITHUB TOKEN SETTINGS
+  // ─────────────────────────────────────────────────────
+  (function initTokenUI() {
+    const statusEl = $("token-status");
+    if (getGitHubToken()) {
+      statusEl.textContent = "✅ Token configured — product changes will sync to all visitors.";
+      statusEl.style.color = "var(--success)";
+    }
+
+    $("save-token-btn").addEventListener("click", () => {
+      const raw = $("github-token-input").value.trim();
+      if (!raw) { statusEl.textContent = "Enter a token first."; statusEl.style.color = "var(--danger)"; return; }
+      setGitHubToken(raw);
+      $("github-token-input").value = "";
+      statusEl.textContent = "✅ Token saved — product changes will now sync to all visitors.";
+      statusEl.style.color = "var(--success)";
+    });
+
+    $("clear-token-btn").addEventListener("click", () => {
+      setGitHubToken("");
+      $("github-token-input").value = "";
+      statusEl.textContent = "Token cleared. Changes will only be saved locally until a token is added.";
+      statusEl.style.color = "var(--text-light)";
+    });
+  })();
+
+  // ─────────────────────────────────────────────────────
   //  RESET TO DEFAULTS
   // ─────────────────────────────────────────────────────
   $("reset-btn").addEventListener("click", () => {
     if (!confirm("Reset all menu items to defaults? All your custom items and photos will be lost.")) return;
-    localStorage.removeItem(STORAGE_KEY);
+    saveProducts(structuredClone(DEFAULT_PRODUCTS));
     showToast("Menu reset to defaults.");
     renderProductList();
     resetForm();
