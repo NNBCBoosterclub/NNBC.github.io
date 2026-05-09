@@ -1377,8 +1377,10 @@
     } else {
       $("admin-panel").style.display = "block";
       renderProductList();
+      renderStoreStatus();
+      renderReceiptHistory();
       renderOrders();
-      initProductsFromServer(); // pull latest catalog from GitHub in the background
+      initSharedDataFromServer();
     }
   }
 
@@ -1458,12 +1460,24 @@
   // ─────────────────────────────────────────────────────
   //  GITHUB SYNC
   // ─────────────────────────────────────────────────────
-  // Products are stored in products.json in this repository so every visitor
-  // sees the same catalog. The admin saves a fine-grained GitHub PAT once;
-  // it is kept only in this browser's localStorage and is never committed.
-  const GITHUB_TOKEN_KEY = "nnbc_github_token";
-  const GITHUB_API_URL   = "https://api.github.com/repos/NNBCBoosterclub/NNBC/contents/products.json";
-  const PRODUCTS_RAW_URL = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main/products.json";
+  // Admin-managed data is stored in this repository so every visitor/admin
+  // sees the same menu, restock status, and receipt history. The admin saves a
+  // fine-grained GitHub PAT once; it is kept only in this browser's
+  // localStorage and is never committed.
+  const GITHUB_TOKEN_KEY      = "nnbc_github_token";
+  const GITHUB_API_BASE_URL   = "https://api.github.com/repos/NNBCBoosterclub/NNBC/contents";
+  const GITHUB_RAW_BASE_URL   = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main";
+  const PRODUCTS_API_URL      = `${GITHUB_API_BASE_URL}/products.json`;
+  const PRODUCTS_RAW_URL      = `${GITHUB_RAW_BASE_URL}/products.json`;
+  const STORE_STATUS_API_URL  = `${GITHUB_API_BASE_URL}/store-status.json`;
+  const STORE_STATUS_RAW_URL  = `${GITHUB_RAW_BASE_URL}/store-status.json`;
+  const RECEIPTS_API_URL      = `${GITHUB_API_BASE_URL}/receipts.json`;
+  const RECEIPTS_RAW_URL      = `${GITHUB_RAW_BASE_URL}/receipts.json`;
+  const DEFAULT_STORE_STATUS  = { state: "normal", message: null, ts: null };
+
+  let products      = structuredClone(DEFAULT_PRODUCTS);
+  let restockStatus = { ...DEFAULT_STORE_STATUS };
+  let receipts      = [];
 
   function getGitHubToken() { return localStorage.getItem(GITHUB_TOKEN_KEY) || ""; }
   function setGitHubToken(t) {
@@ -1486,17 +1500,56 @@
     });
   }
 
+  function normalizeStoreStatus(value) {
+    const rawState = value && typeof value === "object" ? value.state : null;
+    const state = rawState === "ordered" || rawState === "restocked" ? rawState : "normal";
+    return {
+      state,
+      message: value && typeof value.message === "string" ? value.message : null,
+      ts: Number.isFinite(value?.ts) ? value.ts : null,
+    };
+  }
+
+  function normalizeReceipts(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(r => ({
+      id: typeof r?.id === "string" ? r.id : "",
+      ts: Number.isFinite(r?.ts) ? r.ts : Date.now(),
+      imageUrl: (typeof r?.imageUrl === "string" && r.imageUrl.startsWith("data:image/")) ? r.imageUrl : null,
+      notes: typeof r?.notes === "string" && r.notes.trim() ? r.notes.trim() : null,
+      items: Array.isArray(r?.items)
+        ? r.items
+            .filter(item => item && Number.isFinite(Number(item.qty)) && Number(item.qty) > 0)
+            .map(item => ({
+              productId: Number(item.productId),
+              productName: String(item.productName || ""),
+              qty: Number(item.qty),
+            }))
+        : [],
+    })).filter(r => r.id);
+  }
+
+  async function fetchJson(url) {
+    const res = await fetch(url + "?t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  }
+
   // Fetches the live catalog from raw.githubusercontent.com (updates within
   // seconds of a GitHub API commit, no Pages rebuild needed).
   async function fetchProductsFromServer() {
-    const res = await fetch(PRODUCTS_RAW_URL + "?t=" + Date.now());
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return normalizeProducts(await res.json());
+    return normalizeProducts(await fetchJson(PRODUCTS_RAW_URL));
   }
 
-  // Commits the product list to products.json on the main branch via GitHub API.
-  // Requires a fine-grained PAT with Contents: Read and write access to this repo.
-  async function pushProductsToGitHub(list) {
+  async function fetchStoreStatusFromServer() {
+    return normalizeStoreStatus(await fetchJson(STORE_STATUS_RAW_URL));
+  }
+
+  async function fetchReceiptsFromServer() {
+    return normalizeReceipts(await fetchJson(RECEIPTS_RAW_URL));
+  }
+
+  async function pushJsonToGitHub(apiUrl, value, commitMessage) {
     const token = getGitHubToken();
     if (!token) throw new Error("No GitHub token configured.");
 
@@ -1508,20 +1561,22 @@
     };
 
     // GitHub API requires the current blob SHA when updating an existing file.
-    const infoRes = await fetch(GITHUB_API_URL, { headers });
-    if (!infoRes.ok) throw new Error("Could not read file info (HTTP " + infoRes.status + ").");
+    const infoRes = await fetch(apiUrl, { headers });
+    if (!infoRes.ok) {
+      throw new Error("Could not read GitHub file info (HTTP " + infoRes.status + "). Check the token, repo access, and network connection.");
+    }
     const { sha } = await infoRes.json();
 
     // TextEncoder produces a proper UTF-8 byte sequence for emoji and other non-ASCII.
-    const bytes = new TextEncoder().encode(JSON.stringify(list, null, 2));
+    const bytes = new TextEncoder().encode(JSON.stringify(value, null, 2));
     const binStr = Array.from(bytes, b => String.fromCharCode(b)).join("");
     const b64 = btoa(binStr);
 
-    const putRes = await fetch(GITHUB_API_URL, {
+    const putRes = await fetch(apiUrl, {
       method: "PUT",
       headers,
       body: JSON.stringify({
-        message: "Update product catalog via admin panel",
+        message: commitMessage,
         content: b64,
         sha,
         branch: "main",
@@ -1533,45 +1588,51 @@
     }
   }
 
-  // Pulls the latest catalog from GitHub, updates the local cache, and re-renders.
+  // Pulls the latest shared admin data from GitHub and re-renders.
   // Called automatically when the admin panel opens.
-  async function initProductsFromServer() {
-    try {
-      const fresh = await fetchProductsFromServer();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
-      renderProductList();
-    } catch (e) {
-      console.warn("Could not fetch products from server:", e);
+  async function initSharedDataFromServer() {
+    const [productsResult, statusResult, receiptsResult] = await Promise.allSettled([
+      fetchProductsFromServer(),
+      fetchStoreStatusFromServer(),
+      fetchReceiptsFromServer(),
+    ]);
+
+    if (productsResult.status === "fulfilled") {
+      products = productsResult.value;
+    } else {
+      console.warn("Could not fetch products from server:", productsResult.reason);
     }
+
+    if (statusResult.status === "fulfilled") {
+      restockStatus = statusResult.value;
+    } else {
+      console.warn("Could not fetch store status from server:", statusResult.reason);
+    }
+
+    if (receiptsResult.status === "fulfilled") {
+      receipts = receiptsResult.value;
+    } else {
+      console.warn("Could not fetch receipts from server:", receiptsResult.reason);
+    }
+
+    renderProductList();
+    renderStoreStatus();
+    renderReceiptHistory();
   }
 
-  // Reads menu data and performs schema migration for older saved payloads.
-  // Falls back to the server-cached copy in localStorage, then to DEFAULT_PRODUCTS.
+  // Reads menu data from the last shared snapshot loaded from GitHub.
   function loadProducts() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return normalizeProducts(JSON.parse(saved));
-    } catch (e) {
-      console.warn("Failed to load products:", e);
-    }
-    return structuredClone(DEFAULT_PRODUCTS);
+    return structuredClone(products);
   }
 
-  function saveProducts(list) {
-    // Write to localStorage immediately so the UI stays responsive.
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    // Then push to GitHub so all visitors see the change on next page load.
-    pushProductsToGitHub(list).catch(err => {
-      console.warn("GitHub sync failed:", err);
-      const msg = getGitHubToken()
-        ? "⚠️ Local save OK, but GitHub sync failed: " + err.message
-        : "⚠️ Saved locally only. Add a GitHub token in Settings → GitHub Sync to publish to all visitors.";
-      showToast(msg, true);
-    });
+  async function saveProducts(list) {
+    const normalized = normalizeProducts(list);
+    await pushJsonToGitHub(PRODUCTS_API_URL, normalized, "Update product catalog via admin panel");
+    products = normalized;
   }
 
   function nextId(list) {
-    // Local incremental IDs are sufficient because data is browser-local.
+    // IDs are generated from the current shared catalog snapshot.
     return list.length === 0 ? 1 : Math.max(...list.map(p => p.id)) + 1;
   }
 
@@ -1858,7 +1919,7 @@
     $("menu-section-title").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  $("item-form").addEventListener("submit", e => {
+  $("item-form").addEventListener("submit", async e => {
     e.preventDefault();
 
     const name        = $("f-name").value.trim();
@@ -1879,33 +1940,37 @@
 
     const list = loadProducts();
 
-    if (editId) {
-      // Edit flow preserves existing image unless user explicitly changes/removes it.
-      const idx = list.findIndex(x => x.id === +editId);
-      if (idx === -1) { showToast("Item not found.", true); return; }
+    try {
+      if (editId) {
+        // Edit flow preserves existing image unless user explicitly changes/removes it.
+        const idx = list.findIndex(x => x.id === +editId);
+        if (idx === -1) { showToast("Item not found.", true); return; }
 
-      let imageUrl = list[idx].imageUrl;
-      if (pendingImageUrl === "")        imageUrl = null;
-      else if (pendingImageUrl !== null)  imageUrl = pendingImageUrl;
+        let imageUrl = list[idx].imageUrl;
+        if (pendingImageUrl === "")        imageUrl = null;
+        else if (pendingImageUrl !== null) imageUrl = pendingImageUrl;
 
-      list[idx] = { ...list[idx], name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition, allergies };
-      saveProducts(list);
-      showToast(`✅ "${name}" updated.`);
-    } else {
-      // Add flow blocks duplicate names (case-insensitive) for cleaner menu UX.
-      const duplicate = list.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
-      if (duplicate) {
-        showToast(`⚠️ "${name}" is already on the menu.`, true);
-        return;
+        list[idx] = { ...list[idx], name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition, allergies };
+        await saveProducts(list);
+        showToast(`✅ "${name}" updated.`);
+      } else {
+        // Add flow blocks duplicate names (case-insensitive) for cleaner menu UX.
+        const duplicate = list.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
+        if (duplicate) {
+          showToast(`⚠️ "${name}" is already on the menu.`, true);
+          return;
+        }
+        const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
+        list.push({ id: nextId(list), name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition, allergies });
+        await saveProducts(list);
+        showToast(`✅ "${name}" added to menu.`);
       }
-      const imageUrl = (pendingImageUrl && pendingImageUrl !== "") ? pendingImageUrl : null;
-      list.push({ id: nextId(list), name, price, category, subcategory, emoji, barcode, imageUrl, stock, nutrition, allergies });
-      saveProducts(list);
-      showToast(`✅ "${name}" added to menu.`);
-    }
 
-    resetForm();
-    renderProductList();
+      resetForm();
+      renderProductList();
+    } catch (err) {
+      showToast(`⚠️ ${err.message || "Could not publish menu changes."}`, true);
+    }
   });
 
   // ─────────────────────────────────────────────────────
@@ -2046,8 +2111,7 @@
           restockBtn.style.display = "";
         });
 
-        // Restock writes to canonical localStorage data, then re-renders list.
-        function applyRestock() {
+        async function applyRestock() {
           const addQty = parseInt(restockQty.value, 10);
           if (isNaN(addQty) || addQty < 1) {
             showToast("Enter a valid quantity (at least 1).", true);
@@ -2060,10 +2124,14 @@
           const wasUnlimited = item.stock === null || item.stock === undefined;
           // If item was unlimited, restocking starts tracked inventory at addQty.
           item.stock = wasUnlimited ? addQty : item.stock + addQty;
-          saveProducts(prods);
-          const note = wasUnlimited ? ` (stock tracking started)` : "";
-          showToast(`✅ +${addQty} ${p.name} restocked. Now: ${item.stock}${note}`);
-          renderProductList();
+          try {
+            await saveProducts(prods);
+            const note = wasUnlimited ? ` (stock tracking started)` : "";
+            showToast(`✅ +${addQty} ${p.name} restocked. Now: ${item.stock}${note}`);
+            renderProductList();
+          } catch (err) {
+            showToast(`⚠️ ${err.message || "Could not publish restock update."}`, true);
+          }
         }
 
         confirmBtn.addEventListener("click", applyRestock);
@@ -2089,13 +2157,17 @@
         delBtn.className = "btn-delete";
         delBtn.type = "button";
         delBtn.textContent = "🗑 Delete";
-        delBtn.addEventListener("click", () => {
+        delBtn.addEventListener("click", async () => {
           if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
           const prods = loadProducts().filter(x => x.id !== p.id);
-          saveProducts(prods);
-          showToast(`"${p.name}" deleted.`);
-          renderProductList();
-          if ($("edit-id").value === String(p.id)) resetForm();
+          try {
+            await saveProducts(prods);
+            showToast(`"${p.name}" deleted.`);
+            renderProductList();
+            if ($("edit-id").value === String(p.id)) resetForm();
+          } catch (err) {
+            showToast(`⚠️ ${err.message || "Could not delete item globally."}`, true);
+          }
         });
         actions.appendChild(delBtn);
 
@@ -2128,7 +2200,7 @@
   (function initTokenUI() {
     const statusEl = $("token-status");
     if (getGitHubToken()) {
-      statusEl.textContent = "✅ Token configured — product changes will sync to all visitors.";
+      statusEl.textContent = "✅ Token configured — menu, restock status, and receipts will sync globally.";
       statusEl.style.color = "var(--success)";
     }
 
@@ -2137,14 +2209,14 @@
       if (!raw) { statusEl.textContent = "Enter a token first."; statusEl.style.color = "var(--danger)"; return; }
       setGitHubToken(raw);
       $("github-token-input").value = "";
-      statusEl.textContent = "✅ Token saved — product changes will now sync to all visitors.";
+      statusEl.textContent = "✅ Token saved — admin changes will now sync globally.";
       statusEl.style.color = "var(--success)";
     });
 
     $("clear-token-btn").addEventListener("click", () => {
       setGitHubToken("");
       $("github-token-input").value = "";
-      statusEl.textContent = "Token cleared. Changes will only be saved locally until a token is added.";
+      statusEl.textContent = "Token cleared. Admin changes cannot be published until a token is added again.";
       statusEl.style.color = "var(--text-light)";
     });
   })();
@@ -2152,12 +2224,16 @@
   // ─────────────────────────────────────────────────────
   //  RESET TO DEFAULTS
   // ─────────────────────────────────────────────────────
-  $("reset-btn").addEventListener("click", () => {
+  $("reset-btn").addEventListener("click", async () => {
     if (!confirm("Reset all menu items to defaults? All your custom items and photos will be lost.")) return;
-    saveProducts(structuredClone(DEFAULT_PRODUCTS));
-    showToast("Menu reset to defaults.");
-    renderProductList();
-    resetForm();
+    try {
+      await saveProducts(structuredClone(DEFAULT_PRODUCTS));
+      showToast("Menu reset to defaults.");
+      renderProductList();
+      resetForm();
+    } catch (err) {
+      showToast(`⚠️ ${err.message || "Could not reset menu globally."}`, true);
+    }
   });
 
   // ─────────────────────────────────────────────────────
@@ -2284,17 +2360,14 @@
   // ─────────────────────────────────────────────────────
   //  STORE STATUS MANAGEMENT
   // ─────────────────────────────────────────────────────
-  const RESTOCK_STATUS_KEY = "nnbc_restock_status";
-
   function loadRestockStatus() {
-    try {
-      const s = localStorage.getItem(RESTOCK_STATUS_KEY);
-      return s ? JSON.parse(s) : null;
-    } catch (e) { return null; }
+    return { ...restockStatus };
   }
 
-  function saveRestockStatus(state, message) {
-    localStorage.setItem(RESTOCK_STATUS_KEY, JSON.stringify({ state, message, ts: Date.now() }));
+  async function saveRestockStatus(state, message = null) {
+    const nextStatus = normalizeStoreStatus({ state, message, ts: Date.now() });
+    await pushJsonToGitHub(STORE_STATUS_API_URL, nextStatus, "Update storefront restock status via admin panel");
+    restockStatus = nextStatus;
   }
 
   function renderStoreStatus() {
@@ -2313,45 +2386,52 @@
     }
   }
 
-  $("btn-mark-ordered").addEventListener("click", () => {
-    saveRestockStatus("ordered");
-    renderStoreStatus();
-    showToast("📦 Status set to 'Items Ordered'.");
+  $("btn-mark-ordered").addEventListener("click", async () => {
+    try {
+      await saveRestockStatus("ordered");
+      renderStoreStatus();
+      showToast("📦 Status set to 'Items Ordered'.");
+    } catch (err) {
+      showToast(`⚠️ ${err.message || "Could not publish status change."}`, true);
+    }
   });
 
-  $("btn-mark-restocked").addEventListener("click", () => {
-    saveRestockStatus("restocked");
-    renderStoreStatus();
-    showToast("✅ Status set to 'Store Restocked'.");
+  $("btn-mark-restocked").addEventListener("click", async () => {
+    try {
+      await saveRestockStatus("restocked");
+      renderStoreStatus();
+      showToast("✅ Status set to 'Store Restocked'.");
+    } catch (err) {
+      showToast(`⚠️ ${err.message || "Could not publish status change."}`, true);
+    }
   });
 
-  $("btn-clear-status").addEventListener("click", () => {
-    saveRestockStatus("normal");
-    renderStoreStatus();
-    showToast("🔕 Status cleared.");
+  $("btn-clear-status").addEventListener("click", async () => {
+    try {
+      await saveRestockStatus("normal");
+      renderStoreStatus();
+      showToast("🔕 Status cleared.");
+    } catch (err) {
+      showToast(`⚠️ ${err.message || "Could not publish status change."}`, true);
+    }
   });
 
   // ─────────────────────────────────────────────────────
   //  RECEIPT UPLOAD & BULK RESTOCK
   // ─────────────────────────────────────────────────────
-  const RECEIPTS_KEY     = "nnbc_receipts";
-  const RECEIPT_SEQ_KEY  = "nnbc_receipt_seq";
-
   function loadReceipts() {
-    try {
-      const s = localStorage.getItem(RECEIPTS_KEY);
-      return s ? JSON.parse(s) : [];
-    } catch (e) { return []; }
+    return structuredClone(receipts);
   }
 
-  function saveReceipts(list) {
-    localStorage.setItem(RECEIPTS_KEY, JSON.stringify(list));
+  async function saveReceipts(list) {
+    const normalized = normalizeReceipts(list);
+    await pushJsonToGitHub(RECEIPTS_API_URL, normalized, "Update receipt history via admin panel");
+    receipts = normalized;
   }
 
   function nextReceiptId() {
-    const seq = (parseInt(localStorage.getItem(RECEIPT_SEQ_KEY), 10) || 0) + 1;
-    localStorage.setItem(RECEIPT_SEQ_KEY, seq);
-    return "REC-" + String(seq).padStart(5, "0");
+    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `REC-${Date.now()}-${randomPart}`;
   }
 
   // Receipt image handling
@@ -2403,14 +2483,48 @@
     });
   }
 
-  $("apply-bulk-restock-btn").addEventListener("click", () => {
+  function ensureMenuContainsReceiptItems(productList, receiptItems) {
+    let changed = false;
+
+    receiptItems.forEach(entry => {
+      const productName = String(entry?.productName || "").trim();
+      if (!productName) return;
+      const productNameLower = productName.toLowerCase();
+
+      const match = productList.find(product =>
+        (Number.isFinite(Number(entry?.productId)) && product.id === Number(entry.productId)) ||
+        product.name.trim().toLowerCase() === productNameLower
+      );
+      if (match) return;
+
+      productList.push({
+        id: nextId(productList),
+        name: productName,
+        emoji: "🛍️",
+        price: 0,
+        category: "Other",
+        subcategory: null,
+        imageUrl: null,
+        stock: Number.isFinite(Number(entry?.qty)) ? Number(entry.qty) : 0,
+        nutrition: null,
+        barcode: null,
+        allergies: null,
+      });
+      changed = true;
+    });
+
+    return changed;
+  }
+
+  $("apply-bulk-restock-btn").addEventListener("click", async () => {
     const notes       = $("receipt-notes").value.trim();
     const imageUrl    = pendingReceiptImageUrl || null;
     const grid        = $("bulk-restock-grid");
     const inputs      = grid.querySelectorAll(".bulk-restock-item");
     const restockedItems = [];
 
-    const prods = loadProducts();
+    const previousProducts = loadProducts();
+    const prods = structuredClone(previousProducts);
     let anyChange = false;
 
     inputs.forEach(row => {
@@ -2433,7 +2547,8 @@
       return;
     }
 
-    if (anyChange) saveProducts(prods);
+    const nextProducts = structuredClone(prods);
+    const addedFromReceipt = ensureMenuContainsReceiptItems(nextProducts, restockedItems);
 
     // Save receipt record
     const receipt = {
@@ -2443,9 +2558,25 @@
       notes:    notes || null,
       items:    restockedItems,
     };
-    const receipts = loadReceipts();
-    receipts.unshift(receipt);
-    saveReceipts(receipts);
+    const nextReceipts = loadReceipts();
+    nextReceipts.unshift(receipt);
+
+    try {
+      if (anyChange || addedFromReceipt) {
+        await saveProducts(nextProducts);
+      }
+      await saveReceipts(nextReceipts);
+    } catch (err) {
+      if (anyChange || addedFromReceipt) {
+        try {
+          await saveProducts(previousProducts);
+        } catch (rollbackErr) {
+          console.warn("Receipt sync failed and product rollback also failed:", rollbackErr);
+        }
+      }
+      showToast(`⚠️ ${err.message || "Could not publish receipt changes."}`, true);
+      return;
+    }
 
     // Reset receipt form
     $("receipt-notes").value = "";
@@ -2510,11 +2641,15 @@
       delBtn.type = "button";
       delBtn.title = "Delete receipt record";
       delBtn.textContent = "🗑";
-      delBtn.addEventListener("click", () => {
+      delBtn.addEventListener("click", async () => {
         if (!confirm("Delete this receipt record?")) return;
-        saveReceipts(loadReceipts().filter(x => x.id !== r.id));
-        renderReceiptHistory();
-        showToast("Receipt deleted.");
+        try {
+          await saveReceipts(loadReceipts().filter(x => x.id !== r.id));
+          renderReceiptHistory();
+          showToast("Receipt deleted.");
+        } catch (err) {
+          showToast(`⚠️ ${err.message || "Could not delete receipt globally."}`, true);
+        }
       });
       card.appendChild(delBtn);
       container.appendChild(card);

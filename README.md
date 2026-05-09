@@ -94,7 +94,7 @@ The site deploys automatically to **GitHub Pages** whenever changes are pushed t
 - Upload optional receipt image
 - Add optional notes
 - Enter quantities received per menu item and apply in one action
-- Saves receipt history records (with timestamp, notes, and restocked items)
+- Saves receipt history records globally in the repository (with timestamp, notes, and restocked items)
 - Delete receipt history entries
 
 ### Store status controls
@@ -147,6 +147,6 @@ Edit and push to `main` — the site redeploys automatically.
 
 This project is a static site with no backend.
 
-- Data is stored in browser `localStorage`
-- Menu, accounts, orders, stock, receipts, and status are device/browser specific
-- Multi-device data synchronization is not built in
+- Admin-managed menu data, restock status, and receipt history are stored in GitHub-backed JSON files in this repository
+- Admin PIN, GitHub sync token, customer accounts, sessions, and order history still use browser `localStorage`
+- Customer checkout stock decrements remain browser-local unless they are later published through the admin workflow
