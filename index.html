@@ -3622,7 +3622,6 @@
 
   updateStatusBanner();
   initStoreStatusFromServer();
-  window.addEventListener("focus", initStoreStatusFromServer);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) initStoreStatusFromServer();
   });

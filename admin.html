@@ -1562,7 +1562,9 @@
 
     // GitHub API requires the current blob SHA when updating an existing file.
     const infoRes = await fetch(apiUrl, { headers });
-    if (!infoRes.ok) throw new Error("Could not read file info (HTTP " + infoRes.status + ").");
+    if (!infoRes.ok) {
+      throw new Error("Could not read GitHub file info (HTTP " + infoRes.status + "). Check the token, repo access, and network connection.");
+    }
     const { sha } = await infoRes.json();
 
     // TextEncoder produces a proper UTF-8 byte sequence for emoji and other non-ASCII.
@@ -2428,11 +2430,8 @@
   }
 
   function nextReceiptId() {
-    const maxId = loadReceipts().reduce((max, receipt) => {
-      const match = /^REC-(\d+)$/.exec(receipt.id || "");
-      return match ? Math.max(max, parseInt(match[1], 10)) : max;
-    }, 0);
-    return "REC-" + String(maxId + 1).padStart(5, "0");
+    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `REC-${Date.now()}-${randomPart}`;
   }
 
   // Receipt image handling
@@ -2524,7 +2523,8 @@
     const inputs      = grid.querySelectorAll(".bulk-restock-item");
     const restockedItems = [];
 
-    const prods = loadProducts();
+    const previousProducts = loadProducts();
+    const prods = structuredClone(previousProducts);
     let anyChange = false;
 
     inputs.forEach(row => {
@@ -2567,6 +2567,13 @@
       }
       await saveReceipts(nextReceipts);
     } catch (err) {
+      if (anyChange || addedFromReceipt) {
+        try {
+          await saveProducts(previousProducts);
+        } catch (rollbackErr) {
+          console.warn("Receipt sync failed and product rollback also failed:", rollbackErr);
+        }
+      }
       showToast(`⚠️ ${err.message || "Could not publish receipt changes."}`, true);
       return;
     }
