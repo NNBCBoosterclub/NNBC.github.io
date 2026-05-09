@@ -1826,7 +1826,7 @@
         <div class="auth-form" id="auth-register-form">
           <div class="auth-field">
           <label for="reg-username">Username (Email Address)</label>
-          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="username" />
+          <input type="email" id="reg-username" placeholder="name@example.com" autocomplete="email" />
           </div>
           <div class="auth-field">
             <label for="reg-password">Password</label>
@@ -2878,6 +2878,7 @@
   // Register submit
   getById("reg-submit-btn").addEventListener("click", async () => {
     const username = getById("reg-username").value.trim();
+    const email = username;
     const password = getById("reg-password").value;
     const confirm  = getById("reg-password-confirm").value;
     getById("reg-error").textContent = "";
@@ -2893,7 +2894,7 @@
       getById("reg-error").textContent = "Passwords do not match.";
       return;
     }
-    const err = await createAccount(username, password, username);
+    const err = await createAccount(username, password, email);
     if (err) { getById("reg-error").textContent = err; return; }
     saveUser({ username });
     closeAuthModal();
