@@ -1034,6 +1034,7 @@
     .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     .profile-username { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+    .profile-contact-text { font-size: 0.88rem; color: var(--text-light); }
 
     .profile-img-actions { display: flex; gap: 0.5rem; align-items: center; }
 
@@ -1124,6 +1125,46 @@
       cursor: pointer;
     }
     .profile-fav-select:focus { border-color: var(--primary); background: #fff; }
+
+    .profile-email-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .profile-email-input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .profile-email-input:focus { border-color: var(--primary); background: #fff; }
+
+    .profile-email-save-btn {
+      padding: 0.55rem 0.9rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .profile-email-save-btn:hover { filter: brightness(1.1); }
+
+    .profile-field-hint {
+      margin-top: 0.45rem;
+      font-size: 0.78rem;
+      color: var(--text-light);
+    }
 
     .profile-most-purchased {
       display: flex;
@@ -1792,6 +1833,10 @@
           <input type="password" id="reg-password" placeholder="Create a password" autocomplete="new-password" />
         </div>
         <div class="auth-field">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="name@example.com" autocomplete="email" aria-required="true" required />
+        </div>
+        <div class="auth-field">
           <label for="reg-password-confirm">Confirm Password</label>
           <input type="password" id="reg-password-confirm" placeholder="Repeat password" autocomplete="new-password" />
         </div>
@@ -1815,6 +1860,7 @@
       <div class="profile-avatar-wrap">
         <div class="profile-avatar" id="profile-avatar-display">👤</div>
         <div class="profile-username" id="profile-username-display"></div>
+        <div class="profile-contact-text" id="profile-email-display"></div>
         <div class="profile-img-actions">
           <label class="btn-upload-avatar" tabindex="0" role="button">
             📷 Change Photo
@@ -1823,6 +1869,15 @@
           <button class="btn-remove-avatar" id="btn-remove-avatar">✕ Remove</button>
         </div>
       </div>
+    </div>
+    <!-- Email -->
+    <div class="profile-section">
+      <div class="profile-section-title">✉️ Email</div>
+      <div class="profile-email-row">
+        <input class="profile-email-input" type="email" id="profile-email-input" placeholder="name@example.com" autocomplete="email" />
+        <button class="profile-email-save-btn" id="profile-email-save-btn">Save</button>
+      </div>
+      <div class="profile-field-hint" id="profile-email-hint"></div>
     </div>
     <!-- Favorite item -->
     <div class="profile-section">
@@ -1992,7 +2047,7 @@
   }
 
   // ─────────────────────────────────────────────────────
-  //  USER ACCOUNTS (username + password, localStorage only)
+  //  USER ACCOUNTS (username + password + email, localStorage only)
   // ─────────────────────────────────────────────────────
   // Accounts are stored device-locally with hashed passwords (SHA-256 + salt).
   // USER_KEY stores the active session: { username } for logged-in users,
@@ -2001,6 +2056,7 @@
   const MAX_AVATAR_BYTES   = 10 * 1024 * 1024; // 10 MB upload limit
   const AVATAR_SIZE_PX     = 256;               // max width/height after resize
   const AVATAR_JPEG_QUALITY = 0.8;              // JPEG compression quality for avatars
+  const EMAIL_REGEX        = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
 
   async function hashPassword(pw) {
     const enc  = new TextEncoder();
@@ -2009,10 +2065,38 @@
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
   }
 
+  function normalizeEmail(email) {
+    return String(email || "").trim().toLowerCase();
+  }
+
+  function isValidEmail(email) {
+    const normalized = normalizeEmail(email);
+    if (!EMAIL_REGEX.test(normalized)) return false;
+    if (normalized.includes("..")) return false;
+    const parts = normalized.split("@");
+    if (parts.length !== 2) return false;
+    const domain = parts[1];
+    return !domain.startsWith(".") && !domain.endsWith(".");
+  }
+
   function loadAccounts() {
     try {
       const s = localStorage.getItem(ACCOUNTS_KEY);
-      return s ? JSON.parse(s) : [];
+      const parsed = s ? JSON.parse(s) : [];
+      if (!Array.isArray(parsed)) return [];
+      let changed = false;
+      const accounts = parsed
+        .filter(acc => acc && typeof acc === "object")
+        .map(acc => {
+          const normalized = { ...acc };
+          const email = typeof normalized.email === "string" ? normalizeEmail(normalized.email) : "";
+          if (normalized.email !== email) changed = true;
+          if (!Object.prototype.hasOwnProperty.call(normalized, "email")) changed = true;
+          normalized.email = email;
+          return normalized;
+        });
+      if (changed) saveAccounts(accounts);
+      return accounts;
     } catch(e) { return []; }
   }
 
@@ -2024,14 +2108,18 @@
     return loadAccounts().find(a => a.username.toLowerCase() === username.toLowerCase());
   }
 
-  async function createAccount(username, password) {
+  async function createAccount(username, password, email) {
     // Returns null on success, error string on failure.
     const accounts = loadAccounts();
+    const normalizedEmail = normalizeEmail(email);
     if (accounts.find(a => a.username.toLowerCase() === username.toLowerCase())) {
       return "Username already taken.";
     }
+    if (!isValidEmail(normalizedEmail)) {
+      return "Please enter a valid email address.";
+    }
     const passwordHash = await hashPassword(password);
-    accounts.push({ username, passwordHash, profileImageUrl: null, favoriteItemId: null, createdAt: Date.now() });
+    accounts.push({ username, email: normalizedEmail, passwordHash, profileImageUrl: null, favoriteItemId: null, createdAt: Date.now() });
     saveAccounts(accounts);
     return null;
   }
@@ -2045,7 +2133,14 @@
   function updateAccountField(username, updates) {
     const accounts = loadAccounts();
     const i = accounts.findIndex(a => a.username.toLowerCase() === username.toLowerCase());
-    if (i >= 0) { Object.assign(accounts[i], updates); saveAccounts(accounts); }
+    if (i >= 0) {
+      const nextUpdates = { ...updates };
+      if (Object.prototype.hasOwnProperty.call(nextUpdates, "email")) {
+        nextUpdates.email = normalizeEmail(nextUpdates.email);
+      }
+      Object.assign(accounts[i], nextUpdates);
+      saveAccounts(accounts);
+    }
   }
 
   function loadUser() {
@@ -2774,7 +2869,9 @@
         getById("checkout-buyer-name").textContent = username;
         getById("change-name-btn").textContent = "👤 Profile";
       }
-      showToast("👋 Welcome back, " + escHtml(username) + "!");
+      if (!promptForMissingEmail()) {
+        showToast("👋 Welcome back, " + escHtml(username) + "!");
+      }
     } else {
       getById("login-error").textContent = "Incorrect username or password.";
     }
@@ -2786,6 +2883,7 @@
   getById("reg-submit-btn").addEventListener("click", async () => {
     const username = getById("reg-username").value.trim();
     const password = getById("reg-password").value;
+    const email    = getById("reg-email").value;
     const confirm  = getById("reg-password-confirm").value;
     getById("reg-error").textContent = "";
     if (username.length < 2) {
@@ -2800,11 +2898,15 @@
       getById("reg-error").textContent = "Password must be at least 8 characters.";
       return;
     }
+    if (!isValidEmail(email)) {
+      getById("reg-error").textContent = "Please enter a valid email address.";
+      return;
+    }
     if (password !== confirm) {
       getById("reg-error").textContent = "Passwords do not match.";
       return;
     }
-    const err = await createAccount(username, password);
+    const err = await createAccount(username, password, email);
     if (err) { getById("reg-error").textContent = err; return; }
     saveUser({ username });
     closeAuthModal();
@@ -2812,7 +2914,8 @@
     showToast("🎉 Account created! Welcome, " + escHtml(username) + "!");
   });
   getById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password").focus(); });
-  getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
+  getById("reg-password").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-email").focus(); });
+  getById("reg-email").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-password-confirm").focus(); });
   getById("reg-password-confirm").addEventListener("keydown", e => { if (e.key === "Enter") getById("reg-submit-btn").click(); });
 
   // Guest buttons — mark as prompted so modal doesn't auto-show again
@@ -2845,12 +2948,18 @@
   // ─────────────────────────────────────────────────────
   //  PROFILE MODAL
   // ─────────────────────────────────────────────────────
-  function openProfileModal() {
-    const account = getCurrentAccount();
+  function openProfileModal(providedAccount) {
+    const account = providedAccount || getCurrentAccount();
     if (!account) { openAuthModal("login"); return; }
+    const hasEmail = !!account.email;
 
     // Username
     getById("profile-username-display").textContent = account.username;
+    getById("profile-email-display").textContent = hasEmail ? account.email : "No email saved yet";
+    getById("profile-email-input").value = account.email || "";
+    getById("profile-email-hint").textContent = hasEmail
+      ? "Use the field below to update your email."
+      : "Add your email to finish setting up this account.";
 
     // Avatar
     const avatarEl = getById("profile-avatar-display");
@@ -2931,6 +3040,14 @@
     document.body.style.overflow = "hidden";
   }
 
+  function promptForMissingEmail(providedAccount) {
+    const account = providedAccount || getCurrentAccount();
+    if (!account || account.email) return false;
+    openProfileModal(account);
+    showToast("✉️ Please add your email to finish setting up your account.");
+    return true;
+  }
+
   function closeProfileModal() {
     getById("profile-modal").classList.remove("open");
     document.body.style.overflow = "";
@@ -2939,6 +3056,25 @@
   getById("close-profile-modal").addEventListener("click", closeProfileModal);
   getById("profile-modal").addEventListener("click", e => {
     if (e.target === getById("profile-modal")) closeProfileModal();
+  });
+
+  getById("profile-email-save-btn").addEventListener("click", () => {
+    const uname = getCurrentUsername();
+    if (!uname) return;
+    const email = normalizeEmail(getById("profile-email-input").value);
+    if (!isValidEmail(email)) {
+      showToast("⚠️ Please enter a valid email address");
+      getById("profile-email-input").focus();
+      return;
+    }
+    updateAccountField(uname, { email });
+    getById("profile-email-display").textContent = email;
+    getById("profile-email-input").value = email;
+    getById("profile-email-hint").textContent = "Email saved to your account.";
+    showToast("✉️ Email saved!");
+  });
+  getById("profile-email-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") getById("profile-email-save-btn").click();
   });
 
   // Favorite item change
@@ -3369,6 +3505,11 @@
   buildBarcodeMap();
   updateCartUI();
   updateUserChip();
+  const currentUser = loadUser();
+  const currentAccount = currentUser && currentUser.username ? findAccount(currentUser.username) : null;
+  if (currentAccount && !currentAccount.email) {
+    promptForMissingEmail(currentAccount);
+  }
 
   // ─────────────────────────────────────────────────────
   //  STORE STATUS BANNER
