@@ -2007,6 +2007,31 @@
   // ─────────────────────────────────────────────────────
   //  PRODUCT STORAGE
   // ─────────────────────────────────────────────────────
+  // Default items pre-populated on first load (no localStorage data yet).
+  // stock: null = not tracked (unlimited); 0 = out of stock; N = N units available
+  const DEFAULT_PRODUCTS = [
+    { id: 1,  name: "Chips",          emoji: "🥔", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 2,  name: "Pretzels",       emoji: "🥨", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 3,  name: "Granola Bar",    emoji: "🍫", price: 1.50, category: "Snack", subcategory: "Health",  imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 4,  name: "Cookies",        emoji: "🍪", price: 1.00, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 5,  name: "Crackers",       emoji: "🫙", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 6,  name: "Fruit Snacks",   emoji: "🍬", price: 1.00, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 7,  name: "Popcorn",        emoji: "🍿", price: 1.00, category: "Snack", subcategory: "Savory",  imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 8,  name: "Candy Bar",      emoji: "🍫", price: 1.50, category: "Snack", subcategory: "Sweet",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 9,  name: "Water",          emoji: "💧", price: 1.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 10, name: "Sports Drink",   emoji: "🥤", price: 2.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 11, name: "Juice Box",      emoji: "🧃", price: 1.50, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 12, name: "Soda",           emoji: "🥤", price: 1.50, category: "Drink", subcategory: "Soda",    imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 13, name: "Hot Chocolate",  emoji: "☕", price: 2.00, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 14, name: "Coffee",         emoji: "☕", price: 1.50, category: "Drink", subcategory: "Other",   imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 15, name: "Sandwich",       emoji: "🥪", price: 4.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 16, name: "Hot Dog",        emoji: "🌭", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 17, name: "Nachos",         emoji: "🧀", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 18, name: "Pizza Slice",    emoji: "🍕", price: 3.00, category: "Meal",  subcategory: null,      imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 19, name: "Spirit Wear",    emoji: "👕", price: 10.00, category: "Other", subcategory: null,     imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+    { id: 20, name: "Miscellaneous",  emoji: "🛍️", price: 1.00, category: "Other", subcategory: null,     imageUrl: null, stock: null, nutrition: null, barcode: null, allergies: null },
+  ];
+
   // Reads and normalizes menu data from localStorage.
   // Back-compat logic lets older stored payloads keep working.
   function loadProducts() {
@@ -2034,12 +2059,55 @@
     } catch (e) {
       console.warn("Failed to load products:", e);
     }
-    return [];
+    return structuredClone(DEFAULT_PRODUCTS);
   }
 
   function saveProducts(list) {
     // Central save path so all write behavior stays consistent.
+    // Products are saved to localStorage for local stock tracking only.
+    // The canonical catalog is managed by the admin via GitHub (products.json).
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+
+  // ─────────────────────────────────────────────────────
+  //  GLOBAL PRODUCT CATALOG (products.json on GitHub)
+  // ─────────────────────────────────────────────────────
+  // The authoritative product list is stored in products.json in this repository
+  // so that every visitor sees the same catalog regardless of their device.
+  // On page load, we fetch it and update the in-memory list. The localStorage
+  // copy acts as a fast first-paint fallback and a place to track local stock
+  // decrements (customer purchases) within a session.
+  const PRODUCTS_RAW_URL = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main/products.json";
+
+  async function fetchProductsFromServer() {
+    const res = await fetch(PRODUCTS_RAW_URL + "?t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const parsed = await res.json();
+    return parsed.map(p => {
+      const { inStock, ...rest } = p;
+      return {
+        ...rest,
+        stock:       ('stock'       in p) ? p.stock       : (inStock === false ? 0 : null),
+        subcategory: ('subcategory' in p) ? p.subcategory : null,
+        nutrition:   ('nutrition'   in p) ? p.nutrition   : null,
+        barcode:     ('barcode'     in p) ? p.barcode     : null,
+        allergies:   ('allergies'   in p) ? p.allergies   : null,
+      };
+    });
+  }
+
+  async function initProductsFromServer() {
+    try {
+      const fresh = await fetchProductsFromServer();
+      // Cache for offline fallback on subsequent loads.
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      products = fresh;
+      buildTabs();
+      renderProducts();
+      buildBarcodeMap();
+    } catch (e) {
+      console.warn("Could not fetch products from server:", e);
+    }
   }
 
   // ─────────────────────────────────────────────────────
@@ -3491,6 +3559,9 @@
   buildBarcodeMap();
   updateCartUI();
   updateUserChip();
+  // Fetch the latest catalog from GitHub so all visitors see the same items.
+  // The synchronous render above provides an instant first paint from cache.
+  initProductsFromServer();
   const currentUser = loadUser();
   const currentAccount = currentUser && currentUser.username ? findAccount(currentUser.username) : null;
   if (currentAccount && !currentAccount.email) {
