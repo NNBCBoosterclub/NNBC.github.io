@@ -1,6 +1,8 @@
 # NNBC Snack Bar
 
-A web app for the NNBC Snack Bar. Customers browse the menu, add items to their cart, and check out via Venmo. Shop owners manage inventory, add/edit/delete items, and upload photos — all from the browser, no code needed.
+A static web app for the NNBC Snack Bar with two pages:
+- **Customer page** (`index.html`) for browsing, ordering, and payment
+- **Admin page** (`admin.html`) for managing menu, stock, and order workflows
 
 🌐 **Live site:** [https://nnbcboosterclub.github.io/NNBC/](https://nnbcboosterclub.github.io/NNBC/)
 
@@ -12,50 +14,111 @@ The site deploys automatically to **GitHub Pages** whenever changes are pushed t
 
 ---
 
-## 🔐 Admin Panel (`admin.html`)
+## 🛍️ Customer Page (`index.html`)
 
-The admin panel is a **separate page** at `/admin.html` (link is in the store header: ⚙️ Admin).
+### Menu browsing
+- Category tabs plus subcategory tabs (for Drinks and Snacks)
+- Search across item name, category, and subcategory
+- Product cards with emoji or uploaded image, price, and quantity controls
+- Stock awareness:
+  - Out-of-stock items are disabled
+  - Low-stock badge when 5 or fewer tracked units remain
 
-### First-time setup
+### Nutrition & allergen visibility
+- Optional inline nutrition highlights on cards (calories/protein)
+- “Nutrition Facts / Allergen Info” modal per item
+- Allergen badges on products with warnings
+- Cart and checkout summaries include nutrition totals and allergen warnings
 
-When you open `admin.html` for the first time you'll be prompted to **create a PIN** (minimum 4 characters). The PIN is hashed with SHA-256 before being stored in the browser — it is never stored in plain text.
+### Cart & checkout
+- Slide-out cart with quantity adjust (+/−), line totals, and order total
+- Checkout modal with full itemized summary
+- Payment options:
+  - **Cash**: creates a cash receipt modal for counter payment
+  - **Venmo**: opens Venmo deep link with amount + generated order note
+- Tracked stock is decremented when payment is confirmed
+- Orders are logged locally with order IDs, payment method, status, and timestamps
 
-### What admins can do
+### Account & profile
+- Sign in, create account, or continue as guest
+- **Email-based account creation** (email is the username)
+- Passwords are hashed in-browser (SHA-256 + salt)
+- Profile features:
+  - Upload/remove profile photo
+  - Save/update email
+  - Set favorite item
+  - View most purchased item
+  - View weekly nutrition totals
+  - View recent purchase history
+  - Log out
 
-| Action | How |
-|---|---|
-| **Add a new item** | Fill in the form at the top and click **Add Item** |
-| **Upload a product photo** | Use the photo field in the form (max 10 MB — resized automatically) |
-| **Edit an item** | Click **✏️ Edit** next to any item |
-| **Delete an item** | Click **🗑 Delete** next to any item |
-| **Set starting stock** | Enter a number in the "Starting Stock" field, or check **Unlimited** |
-| **Restock an item** | Click **+ Restock** next to the item, enter a quantity, press ✓ |
-| **Change your PIN** | Use the Settings section at the bottom |
-| **Reset menu to defaults** | Use the Danger Zone at the bottom |
+### Sharing & in-person ordering tools
+- Share button uses native Web Share API when available
+- Fallback share modal includes:
+  - Copy link
+  - QR code generation
+  - Printable QR code page
+- Barcode scanner (camera) can scan product barcodes and add matched items to cart
 
-> **Tip:** Changes are saved in the browser's **local storage** — they persist across page refreshes on the same device. If you manage the snack bar from a dedicated tablet or laptop, changes will always be there.
+### Store status messaging
+- Shows admin-controlled status banner (ordered/restocked/normal) on the storefront
 
 ---
 
-## 📦 Inventory Tracking
+## 🔐 Admin Page (`admin.html`)
 
-Each item has a **stock count** that you control:
+### Admin access
+- First-time setup to create an admin PIN (minimum 4 chars)
+- PIN login/logout flow
+- Change PIN in Settings
+- PIN is hashed with SHA-256 before storage
 
-| Stock value | Meaning |
-|---|---|
-| **Unlimited (∞)** | Not tracked — customers always see the item as available |
-| **N > 0** | N units remaining; customers can add up to N to their cart |
-| **0** | **Out of Stock** — card is greyed out, customers cannot add to cart |
+### Menu management
+- Add, edit, and delete items
+- Configure per-item fields:
+  - Name, price, category, optional subcategory
+  - Emoji
+  - Barcode
+  - Starting stock (tracked quantity or unlimited)
+  - Product photo upload (resized/compressed in browser)
+  - Optional nutrition facts
+  - Optional allergy/ingredient warning
+- Duplicate-name guard when adding new items
 
-### How stock changes
+### Stock management
+- Stock pills show unlimited / in stock / low / out-of-stock states
+- Inline per-item restock action
+- Bulk restock workflow from receipt form
 
-- **Admin sets stock** when adding or editing an item.
-- **Admin uses "+ Restock"** to add quantity (e.g., after resupplying).
-- **Stock decrements automatically** when a customer opens Venmo to pay (i.e., when they confirm their order). Items with `≤ 5` units show a yellow "Only N left!" badge on the customer menu.
+### Receipt upload & bulk restock
+- Upload optional receipt image
+- Add optional notes
+- Enter quantities received per menu item and apply in one action
+- Saves receipt history records (with timestamp, notes, and restocked items)
+- Delete receipt history entries
 
-> **⚠️ Single-device limitation:** Since this is a static site with no backend, stock data is stored in the browser's localStorage. Each device has its own independent copy. This means:
-> - Stock decrements correctly when customers order on the **same device** as the admin panel.
-> - If customers order from **their own phones**, their stock decrement only affects their own browser — the admin's device won't see it. For this reason, inventory tracking works best on a **shared counter device** where both the menu and admin views run in the same browser.
+### Store status controls
+- Set customer-facing status to:
+  - Items ordered
+  - Store restocked
+  - Clear status (normal)
+
+### Order history & analytics
+- Order dashboard stats:
+  - Total orders
+  - Collected revenue
+  - Pending cash totals
+- Filters: all / cash / Venmo / pending
+- Mark pending cash orders as paid
+- Delete individual order records
+- Clear all order history
+
+### Admin navigation helpers
+- Hero buttons to jump to Analytics and Stock sections
+- Quick action button to open “New Item” modal
+
+### Safety/reset
+- Danger Zone reset restores menu to built-in defaults
 
 ---
 
@@ -63,9 +126,7 @@ Each item has a **stock count** that you control:
 
 A scannable QR code linking to the store is included at the top of this README and can be printed to post at the snack bar.
 
-In the app, click the **📷 QR Code** button in the store header to:
-- See a scannable QR code that links directly to the store.
-- Print a clean QR code page to post at the snack bar.
+In the app, click **Share** to generate and print a QR code page.
 
 ---
 
@@ -79,3 +140,13 @@ const VENMO_DISPLAY  = "Northern Neck Booster Club"; // Display name shown to us
 ```
 
 Edit and push to `main` — the site redeploys automatically.
+
+---
+
+## ⚠️ Data & device scope
+
+This project is a static site with no backend.
+
+- Data is stored in browser `localStorage`
+- Menu, accounts, orders, stock, receipts, and status are device/browser specific
+- Multi-device data synchronization is not built in
