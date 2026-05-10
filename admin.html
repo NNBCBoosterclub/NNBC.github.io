@@ -1627,6 +1627,8 @@
 
   async function saveProducts(list) {
     const normalized = normalizeProducts(list);
+    // Menu data is global and must only be published through GitHub-backed JSON.
+    // Do not save product catalog changes to localStorage.
     await pushJsonToGitHub(PRODUCTS_API_URL, normalized, "Update product catalog via admin panel");
     products = normalized;
   }
