@@ -1615,13 +1615,6 @@
       console.warn("Could not fetch receipts from server:", receiptsResult.reason);
     }
 
-    if (!getGitHubToken()) {
-      const localProducts = loadLocalProductsSnapshot();
-      if (localProducts && localProducts.length) {
-        products = localProducts;
-      }
-    }
-
     renderProductList();
     renderStoreStatus();
     renderReceiptHistory();
@@ -1632,22 +1625,11 @@
     return structuredClone(products);
   }
 
-  function loadLocalProductsSnapshot() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      return normalizeProducts(JSON.parse(raw));
-    } catch {
-      return null;
-    }
-  }
-
   async function saveProducts(list) {
     const normalized = normalizeProducts(list);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-    if (getGitHubToken()) {
-      await pushJsonToGitHub(PRODUCTS_API_URL, normalized, "Update product catalog via admin panel");
-    }
+    // Menu data is global and must only be published through GitHub-backed JSON.
+    // Do not save product catalog changes to localStorage.
+    await pushJsonToGitHub(PRODUCTS_API_URL, normalized, "Update product catalog via admin panel");
     products = normalized;
   }
 
