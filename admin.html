@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NNBC Snack Bar — Admin</title>
+  <!-- Supabase JS v2 — must load before js/db.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/db.js"></script>
   <style>
     :root {
       --primary: #1a3a5c;
@@ -1379,7 +1382,7 @@
       renderProductList();
       renderStoreStatus();
       renderReceiptHistory();
-      renderOrders();
+      refreshOrders();
       initSharedDataFromServer();
     }
   }
@@ -1460,30 +1463,13 @@
   // ─────────────────────────────────────────────────────
   //  GITHUB SYNC
   // ─────────────────────────────────────────────────────
-  // Admin-managed data is stored in this repository so every visitor/admin
-  // sees the same menu, restock status, and receipt history. The admin saves a
-  // fine-grained GitHub PAT once; it is kept only in this browser's
-  // localStorage and is never committed.
-  const GITHUB_TOKEN_KEY      = "nnbc_github_token";
-  const GITHUB_API_BASE_URL   = "https://api.github.com/repos/NNBCBoosterclub/NNBC/contents";
-  const GITHUB_RAW_BASE_URL   = "https://raw.githubusercontent.com/NNBCBoosterclub/NNBC/main";
-  const PRODUCTS_API_URL      = `${GITHUB_API_BASE_URL}/products.json`;
-  const PRODUCTS_RAW_URL      = `${GITHUB_RAW_BASE_URL}/products.json`;
-  const STORE_STATUS_API_URL  = `${GITHUB_API_BASE_URL}/store-status.json`;
-  const STORE_STATUS_RAW_URL  = `${GITHUB_RAW_BASE_URL}/store-status.json`;
-  const RECEIPTS_API_URL      = `${GITHUB_API_BASE_URL}/receipts.json`;
-  const RECEIPTS_RAW_URL      = `${GITHUB_RAW_BASE_URL}/receipts.json`;
+  // Admin-managed data is stored in Supabase so every visitor/admin
+  // sees the same menu, restock status, and receipt history.
   const DEFAULT_STORE_STATUS  = { state: "normal", message: null, ts: null };
 
   let products      = structuredClone(DEFAULT_PRODUCTS);
   let restockStatus = { ...DEFAULT_STORE_STATUS };
   let receipts      = [];
-
-  function getGitHubToken() { return localStorage.getItem(GITHUB_TOKEN_KEY) || ""; }
-  function setGitHubToken(t) {
-    if (t) localStorage.setItem(GITHUB_TOKEN_KEY, t.trim());
-    else   localStorage.removeItem(GITHUB_TOKEN_KEY);
-  }
 
   // Applies back-compat migrations to a raw product array from any source.
   function normalizeProducts(arr) {
@@ -1529,90 +1515,31 @@
     })).filter(r => r.id);
   }
 
-  async function fetchJson(url) {
-    const res = await fetch(url + "?t=" + Date.now());
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return res.json();
-  }
-
-  // Fetches the live catalog from raw.githubusercontent.com (updates within
-  // seconds of a GitHub API commit, no Pages rebuild needed).
-  async function fetchProductsFromServer() {
-    return normalizeProducts(await fetchJson(PRODUCTS_RAW_URL));
-  }
-
-  async function fetchStoreStatusFromServer() {
-    return normalizeStoreStatus(await fetchJson(STORE_STATUS_RAW_URL));
-  }
-
-  async function fetchReceiptsFromServer() {
-    return normalizeReceipts(await fetchJson(RECEIPTS_RAW_URL));
-  }
-
-  async function pushJsonToGitHub(apiUrl, value, commitMessage) {
-    const token = getGitHubToken();
-    if (!token) throw new Error("No GitHub token configured.");
-
-    const headers = {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json",
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-    };
-
-    // GitHub API requires the current blob SHA when updating an existing file.
-    const infoRes = await fetch(apiUrl, { headers });
-    if (!infoRes.ok) {
-      throw new Error("Could not read GitHub file info (HTTP " + infoRes.status + "). Check the token, repo access, and network connection.");
-    }
-    const { sha } = await infoRes.json();
-
-    // TextEncoder produces a proper UTF-8 byte sequence for emoji and other non-ASCII.
-    const bytes = new TextEncoder().encode(JSON.stringify(value, null, 2));
-    const binStr = Array.from(bytes, b => String.fromCharCode(b)).join("");
-    const b64 = btoa(binStr);
-
-    const putRes = await fetch(apiUrl, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        message: commitMessage,
-        content: b64,
-        sha,
-        branch: "main",
-      }),
-    });
-    if (!putRes.ok) {
-      const err = await putRes.json().catch(() => ({}));
-      throw new Error(err.message || "GitHub API error (HTTP " + putRes.status + ").");
-    }
-  }
-
-  // Pulls the latest shared admin data from GitHub and re-renders.
+  // Pulls the latest shared admin data from Supabase and re-renders.
   // Called automatically when the admin panel opens.
   async function initSharedDataFromServer() {
     const [productsResult, statusResult, receiptsResult] = await Promise.allSettled([
-      fetchProductsFromServer(),
-      fetchStoreStatusFromServer(),
-      fetchReceiptsFromServer(),
+      DB.fetchProducts(),
+      DB.fetchStoreStatus(),
+      DB.loadReceipts(),
     ]);
 
     if (productsResult.status === "fulfilled") {
       products = productsResult.value;
     } else {
-      console.warn("Could not fetch products from server:", productsResult.reason);
+      console.warn("Could not fetch products from Supabase:", productsResult.reason);
     }
 
-    if (statusResult.status === "fulfilled") {
-      restockStatus = statusResult.value;
-    } else {
-      console.warn("Could not fetch store status from server:", statusResult.reason);
+    if (statusResult.status === "fulfilled" && statusResult.value) {
+      restockStatus = normalizeStoreStatus(statusResult.value);
+    } else if (statusResult.status === "rejected") {
+      console.warn("Could not fetch store status from Supabase:", statusResult.reason);
     }
 
     if (receiptsResult.status === "fulfilled") {
-      receipts = receiptsResult.value;
+      receipts = normalizeReceipts(receiptsResult.value);
     } else {
-      console.warn("Could not fetch receipts from server:", receiptsResult.reason);
+      console.warn("Could not fetch receipts from Supabase:", receiptsResult.reason);
     }
 
     renderProductList();
@@ -1620,16 +1547,14 @@
     renderReceiptHistory();
   }
 
-  // Reads menu data from the last shared snapshot loaded from GitHub.
+  // Reads menu data from the last shared snapshot loaded from Supabase.
   function loadProducts() {
     return structuredClone(products);
   }
 
   async function saveProducts(list) {
     const normalized = normalizeProducts(list);
-    // Menu data is global and must only be published through GitHub-backed JSON.
-    // Do not save product catalog changes to localStorage.
-    await pushJsonToGitHub(PRODUCTS_API_URL, normalized, "Update product catalog via admin panel");
+    await DB.upsertProducts(normalized);
     products = normalized;
   }
 
@@ -2199,28 +2124,18 @@
   // ─────────────────────────────────────────────────────
   //  GITHUB TOKEN SETTINGS
   // ─────────────────────────────────────────────────────
+  // GitHub token settings are no longer needed — all data is synced via Supabase.
+  // The token UI elements remain in the HTML but are non-functional.
   (function initTokenUI() {
     const statusEl = $("token-status");
-    if (getGitHubToken()) {
-      statusEl.textContent = "✅ Token configured — menu, restock status, and receipts will sync globally.";
+    if (statusEl) {
+      statusEl.textContent = "✅ Data is synced via Supabase — no GitHub token needed.";
       statusEl.style.color = "var(--success)";
     }
-
-    $("save-token-btn").addEventListener("click", () => {
-      const raw = $("github-token-input").value.trim();
-      if (!raw) { statusEl.textContent = "Enter a token first."; statusEl.style.color = "var(--danger)"; return; }
-      setGitHubToken(raw);
-      $("github-token-input").value = "";
-      statusEl.textContent = "✅ Token saved — admin changes will now sync globally.";
-      statusEl.style.color = "var(--success)";
-    });
-
-    $("clear-token-btn").addEventListener("click", () => {
-      setGitHubToken("");
-      $("github-token-input").value = "";
-      statusEl.textContent = "Token cleared. Admin changes cannot be published until a token is added again.";
-      statusEl.style.color = "var(--text-light)";
-    });
+    const saveBtn  = $("save-token-btn");
+    const clearBtn = $("clear-token-btn");
+    if (saveBtn)  saveBtn.disabled  = true;
+    if (clearBtn) clearBtn.disabled = true;
   })();
 
   // ─────────────────────────────────────────────────────
@@ -2241,25 +2156,23 @@
   // ─────────────────────────────────────────────────────
   //  ORDERS
   // ─────────────────────────────────────────────────────
-  // Orders are stored locally on this device only.
-  // This history is useful for front-counter workflows but is not multi-device synced.
-  const ORDERS_KEY = "nnbc_orders";
+  // Orders are stored in Supabase — shared across all devices.
+  let _adminOrders = [];
 
-  function loadOrders() {
+  async function refreshOrders() {
     try {
-      const s = localStorage.getItem(ORDERS_KEY);
-      return s ? JSON.parse(s) : [];
-    } catch (e) { return []; }
-  }
-
-  function saveOrders(orders) {
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      _adminOrders = await DB.loadOrders();
+    } catch (e) {
+      console.warn("Could not load orders from Supabase:", e);
+      _adminOrders = [];
+    }
+    renderOrders();
   }
 
   let activeOrderFilter = "all";
 
   function renderOrders() {
-    const all       = loadOrders();
+    const all       = _adminOrders;
     const statsEl   = $("orders-stats");
     const container = $("order-list");
 
@@ -2320,21 +2233,21 @@
 
       div.querySelector(".btn-del-order").addEventListener("click", () => {
         if (!confirm("Delete this order record?")) return;
-        saveOrders(loadOrders().filter(o => o.id !== order.id));
-        showToast("Order deleted.");
-        renderOrders();
+        DB.deleteOrder(order.id).then(() => {
+          _adminOrders = _adminOrders.filter(o => o.id !== order.id);
+          showToast("Order deleted.");
+          renderOrders();
+        }).catch(e => showToast("⚠️ Could not delete order: " + e.message));
       });
 
       if (isPending) {
         div.querySelector(".btn-mark-paid").addEventListener("click", () => {
-          const orders = loadOrders();
-          const idx = orders.findIndex(o => o.id === order.id);
-          if (idx !== -1) {
-            orders[idx].status = "paid";
-            saveOrders(orders);
+          DB.updateOrderStatus(order.id, "paid").then(() => {
+            const idx = _adminOrders.findIndex(o => o.id === order.id);
+            if (idx !== -1) _adminOrders[idx].status = "paid";
             showToast("✅ Order marked as paid.");
             renderOrders();
-          }
+          }).catch(e => showToast("⚠️ " + e.message));
         });
       }
 
@@ -2353,10 +2266,12 @@
   });
 
   $("clear-orders-btn").addEventListener("click", () => {
-    if (!confirm("Clear all order history? This cannot be undone.")) return;
-    saveOrders([]);
-    showToast("Order history cleared.");
-    renderOrders();
+    if (!confirm("Clear ALL order history from Supabase? This cannot be undone.")) return;
+    DB.clearAllOrders().then(() => {
+      _adminOrders = [];
+      showToast("Order history cleared.");
+      renderOrders();
+    }).catch(e => showToast("⚠️ " + e.message));
   });
 
   // ─────────────────────────────────────────────────────
@@ -2368,7 +2283,7 @@
 
   async function saveRestockStatus(state, message = null) {
     const nextStatus = normalizeStoreStatus({ state, message, ts: Date.now() });
-    await pushJsonToGitHub(STORE_STATUS_API_URL, nextStatus, "Update storefront restock status via admin panel");
+    await DB.saveStoreStatus(state, message);
     restockStatus = nextStatus;
   }
 
@@ -2426,9 +2341,8 @@
   }
 
   async function saveReceipts(list) {
-    const normalized = normalizeReceipts(list);
-    await pushJsonToGitHub(RECEIPTS_API_URL, normalized, "Update receipt history via admin panel");
-    receipts = normalized;
+    // Kept for rollback compatibility only — does nothing in Supabase mode.
+    receipts = normalizeReceipts(list);
   }
 
   function nextReceiptId() {
@@ -2561,13 +2475,24 @@
       items:    restockedItems,
     };
     const nextReceipts = loadReceipts();
-    nextReceipts.unshift(receipt);
+    // Save image to Supabase Storage if present, then save receipt record.
+    let finalImageUrl = null;
+    try {
+      if (imageUrl) {
+        const uploaded = await DB.uploadReceiptImage(receipt.id, imageUrl);
+        finalImageUrl = uploaded.imageUrl;
+      }
+    } catch(imgErr) {
+      console.warn("Receipt image upload failed, saving without image:", imgErr);
+    }
+    receipt.imageUrl = finalImageUrl;
 
     try {
       if (anyChange || addedFromReceipt) {
         await saveProducts(nextProducts);
       }
-      await saveReceipts(nextReceipts);
+      await DB.saveReceipt(receipt);
+      receipts.unshift(receipt);
     } catch (err) {
       if (anyChange || addedFromReceipt) {
         try {
@@ -2646,11 +2571,12 @@
       delBtn.addEventListener("click", async () => {
         if (!confirm("Delete this receipt record?")) return;
         try {
-          await saveReceipts(loadReceipts().filter(x => x.id !== r.id));
+          await DB.deleteReceipt(r.id);
+          receipts = receipts.filter(x => x.id !== r.id);
           renderReceiptHistory();
           showToast("Receipt deleted.");
         } catch (err) {
-          showToast(`⚠️ ${err.message || "Could not delete receipt globally."}`, true);
+          showToast(`⚠️ ${err.message || "Could not delete receipt."}`, true);
         }
       });
       card.appendChild(delBtn);
