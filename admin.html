@@ -853,6 +853,10 @@
       border-color: var(--primary);
       color: #fff;
     }
+    .admin-menu-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
     /* ── Nutrition Facts collapsible in item form ── */
     .nutrition-toggle-btn {
       width: 100%;
@@ -1102,6 +1106,9 @@
           <input type="search" id="admin-search" placeholder="Search items…" autocomplete="off" />
         </div>
         <div class="admin-cat-tabs" id="admin-cat-tabs"></div>
+        <div class="admin-menu-actions">
+          <button type="button" class="btn-save" id="menu-new-item-btn">➕ Add Item</button>
+        </div>
       </div>
       <div id="product-list"></div>
     </div>
@@ -1842,6 +1849,10 @@
   //  HERO PANEL BUTTONS
   // ─────────────────────────────────────────────────────
   $("hero-new-item-btn").addEventListener("click", () => {
+    resetForm();
+    openItemModal();
+  });
+  $("menu-new-item-btn").addEventListener("click", () => {
     resetForm();
     openItemModal();
   });
