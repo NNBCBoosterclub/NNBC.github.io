@@ -2826,6 +2826,9 @@
   // ─────────────────────────────────────────────────────
   //  HEADER MENU
   // ─────────────────────────────────────────────────────
+  const menuBtn = getById("menu-btn");
+  const headerMenu = getById("header-menu");
+
   function openHeaderMenu() {
     headerMenu.classList.add("open");
     menuBtn.setAttribute("aria-expanded", "true");
@@ -2835,9 +2838,6 @@
     headerMenu.classList.remove("open");
     menuBtn.setAttribute("aria-expanded", "false");
   }
-
-  const menuBtn = getById("menu-btn");
-  const headerMenu = getById("header-menu");
 
   function toggleHeaderMenu() {
     if (headerMenu.classList.contains("open")) closeHeaderMenu();
@@ -2852,6 +2852,7 @@
     if (e.target.closest("a,button")) closeHeaderMenu();
   });
   document.addEventListener("click", e => {
+    if (!headerMenu.classList.contains("open")) return;
     if (!headerMenu.contains(e.target) && !menuBtn.contains(e.target)) closeHeaderMenu();
   });
   document.addEventListener("keydown", e => {
