@@ -82,6 +82,10 @@
       flex-shrink: 0;
     }
 
+    .header-menu-wrap {
+      position: relative;
+    }
+
     #cart-btn {
       position: relative;
       background: var(--accent);
@@ -131,21 +135,23 @@
       display: inline-block;
     }
 
+    .items-navbar {
+      position: sticky;
+      top: 64px;
+      background: var(--bg);
+      z-index: 95;
+      margin-left: -1.5rem;
+      margin-right: -1.5rem;
+      padding: 0.6rem 1.5rem 0.7rem;
+      margin-bottom: 1rem;
+    }
+
     /* ── Category tabs ── */
     .tabs {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      position: sticky;
-      top: 64px;
-      background: var(--bg);
-      z-index: 90;
       padding: 0.5rem 0;
-      margin-left: -1.5rem;
-      margin-right: -1.5rem;
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
     }
 
     .tabs-row {
@@ -597,6 +603,68 @@
       transition: filter 0.12s;
     }
     #open-venmo-btn:hover { filter: brightness(1.08); }
+
+    #menu-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background 0.15s;
+    }
+    #menu-btn:hover { background: rgba(255,255,255,0.28); }
+
+    #header-menu {
+      position: absolute;
+      top: calc(100% + 0.45rem);
+      right: 0;
+      min-width: 210px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      padding: 0.45rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.3rem;
+      z-index: 140;
+    }
+    #header-menu.open { display: flex; }
+
+    #header-menu #admin-btn,
+    #header-menu #share-btn,
+    #header-menu #user-chip {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      justify-content: flex-start;
+      text-decoration: none;
+      max-width: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    #header-menu #admin-btn:hover,
+    #header-menu #share-btn:hover,
+    #header-menu #user-chip:hover {
+      background: #edf2f8;
+      border-color: #c1ccda;
+      color: var(--text);
+    }
+    #header-menu #user-chip-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* ── Share button ── */
     #share-btn {
@@ -1328,10 +1396,9 @@
       .logo { font-size: 1.1rem; gap: 0.4rem; }
       .logo-icon { font-size: 1.4rem; }
       #cart-btn  { padding: 0.5rem 0.85rem; font-size: 0.9rem; }
-      #share-btn { padding: 0.45rem 0.7rem;  font-size: 0.9rem; }
-      #user-chip { padding: 0.35rem 0.55rem; }
+      #menu-btn  { padding: 0.45rem 0.7rem;  font-size: 0.9rem; }
       main { padding: 1rem 0.75rem; }
-      .tabs { top: 60px; margin-left: -0.75rem; margin-right: -0.75rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+      .items-navbar { top: 60px; margin-left: -0.75rem; margin-right: -0.75rem; padding-left: 0.75rem; padding-right: 0.75rem; }
       #cart-drawer { width: 100vw; }
       .product-card { padding: 0.85rem 0.65rem; }
       .product-emoji { font-size: 2.8rem; }
@@ -1344,14 +1411,11 @@
     @media (max-width: 380px) {
       .btn-text { display: none; }
       #cart-btn  { padding: 0.5rem 0.75rem; }
-      #share-btn { padding: 0.5rem 0.65rem; }
-      #user-chip { padding: 0.45rem 0.6rem; }
-      #admin-btn .btn-text { display: none; }
+      #menu-btn  { padding: 0.5rem 0.65rem; }
       .logo { font-size: 1rem; }
     }
 
     @media (max-width: 359px) {
-      #admin-btn { display: none; }
       #scan-btn  { display: none; }
       .logo-text { display: none; }
       .header-actions { gap: 0.35rem; }
@@ -1671,17 +1735,24 @@
     <span class="logo-text">NNBC Snack Bar</span>
   </div>
   <div class="header-actions">
-    <a href="admin.html" id="admin-btn" aria-label="Admin panel">⚙️ <span class="btn-text">Admin</span></a>
     <button id="scan-btn" aria-label="Scan barcode">
       <span aria-hidden="true">📷</span> <span class="btn-text">Scan</span>
     </button>
-    <button id="share-btn" aria-label="Share this page">
-      📤 <span class="btn-text">Share</span>
-    </button>
-    <button id="user-chip" aria-label="Your account / profile">
-      <span class="user-chip-avatar" id="user-chip-avatar">👤</span>
-      <span id="user-chip-name" class="btn-text">Guest</span>
-    </button>
+    <div class="header-menu-wrap">
+      <button id="menu-btn" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" aria-controls="header-menu">
+        ☰ <span class="btn-text">Menu</span>
+      </button>
+      <div id="header-menu" role="menu" aria-label="Header actions">
+        <a href="admin.html" id="admin-btn" aria-label="Admin panel" role="menuitem">⚙️ <span>Admin</span></a>
+        <button id="share-btn" aria-label="Share this page" role="menuitem">
+          📤 <span>Share</span>
+        </button>
+        <button id="user-chip" aria-label="Your account / profile" role="menuitem">
+          <span class="user-chip-avatar" id="user-chip-avatar">👤</span>
+          <span id="user-chip-name">Guest</span>
+        </button>
+      </div>
+    </div>
     <button id="cart-btn" aria-label="Open cart">
       🛒 <span class="btn-text">Cart</span>
       <span id="cart-badge"></span>
@@ -1695,11 +1766,13 @@
 <!-- ══════════════════════ MAIN ══════════════════════ -->
 <main>
   <h2 class="section-title">Menu</h2>
-  <div class="shop-search-wrap">
-    <span class="shop-search-icon">🔍</span>
-    <input type="search" id="shop-search" placeholder="Search menu…" autocomplete="off" aria-label="Search menu items" />
+  <div class="items-navbar">
+    <div class="shop-search-wrap">
+      <span class="shop-search-icon">🔍</span>
+      <input type="search" id="shop-search" placeholder="Search menu…" autocomplete="off" aria-label="Search menu items" />
+    </div>
+    <div class="tabs" id="tabs"></div>
   </div>
-  <div class="tabs" id="tabs"></div>
   <div class="product-grid" id="product-grid"></div>
 </main>
 
@@ -2743,6 +2816,41 @@
   getById("cancel-checkout").addEventListener("click", closeCheckout);
   getById("checkout-modal").addEventListener("click", e => {
     if (e.target === getById("checkout-modal")) closeCheckout();
+  });
+
+  // ─────────────────────────────────────────────────────
+  //  HEADER MENU
+  // ─────────────────────────────────────────────────────
+  function openHeaderMenu() {
+    getById("header-menu").classList.add("open");
+    getById("menu-btn").setAttribute("aria-expanded", "true");
+  }
+
+  function closeHeaderMenu() {
+    getById("header-menu").classList.remove("open");
+    getById("menu-btn").setAttribute("aria-expanded", "false");
+  }
+
+  function toggleHeaderMenu() {
+    const menu = getById("header-menu");
+    if (menu.classList.contains("open")) closeHeaderMenu();
+    else openHeaderMenu();
+  }
+
+  getById("menu-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    toggleHeaderMenu();
+  });
+  getById("header-menu").addEventListener("click", e => {
+    if (e.target.closest("a,button")) closeHeaderMenu();
+  });
+  document.addEventListener("click", e => {
+    const menu = getById("header-menu");
+    const btn = getById("menu-btn");
+    if (!menu.contains(e.target) && !btn.contains(e.target)) closeHeaderMenu();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeHeaderMenu();
   });
 
   // ─────────────────────────────────────────────────────
