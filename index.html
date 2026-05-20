@@ -22,6 +22,11 @@
       --success: #27ae60;
       --badge: #e8a020;
       --shadow: 0 2px 8px rgba(0,0,0,0.10);
+      --header-btn-bg: rgba(255,255,255,0.15);
+      --header-btn-border: rgba(255,255,255,0.35);
+      --header-btn-hover-bg: rgba(255,255,255,0.28);
+      --menu-item-hover-bg: #edf2f8;
+      --menu-item-hover-border: #c1ccda;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -605,8 +610,8 @@
     #open-venmo-btn:hover { filter: brightness(1.08); }
 
     #menu-btn {
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.35);
+      background: var(--header-btn-bg);
+      border: 1px solid var(--header-btn-border);
       color: #fff;
       font-size: 0.88rem;
       font-weight: 600;
@@ -618,7 +623,7 @@
       gap: 0.35rem;
       transition: background 0.15s;
     }
-    #menu-btn:hover { background: rgba(255,255,255,0.28); }
+    #menu-btn:hover { background: var(--header-btn-hover-bg); }
 
     #header-menu {
       position: absolute;
@@ -656,8 +661,8 @@
     #header-menu #admin-btn:hover,
     #header-menu #share-btn:hover,
     #header-menu #user-chip:hover {
-      background: #edf2f8;
-      border-color: #c1ccda;
+      background: var(--menu-item-hover-bg);
+      border-color: var(--menu-item-hover-border);
       color: var(--text);
     }
     #header-menu #user-chip-name {
@@ -2822,32 +2827,32 @@
   //  HEADER MENU
   // ─────────────────────────────────────────────────────
   function openHeaderMenu() {
-    getById("header-menu").classList.add("open");
-    getById("menu-btn").setAttribute("aria-expanded", "true");
+    headerMenu.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
   }
 
   function closeHeaderMenu() {
-    getById("header-menu").classList.remove("open");
-    getById("menu-btn").setAttribute("aria-expanded", "false");
+    headerMenu.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
   }
 
+  const menuBtn = getById("menu-btn");
+  const headerMenu = getById("header-menu");
+
   function toggleHeaderMenu() {
-    const menu = getById("header-menu");
-    if (menu.classList.contains("open")) closeHeaderMenu();
+    if (headerMenu.classList.contains("open")) closeHeaderMenu();
     else openHeaderMenu();
   }
 
-  getById("menu-btn").addEventListener("click", e => {
+  menuBtn.addEventListener("click", e => {
     e.stopPropagation();
     toggleHeaderMenu();
   });
-  getById("header-menu").addEventListener("click", e => {
+  headerMenu.addEventListener("click", e => {
     if (e.target.closest("a,button")) closeHeaderMenu();
   });
   document.addEventListener("click", e => {
-    const menu = getById("header-menu");
-    const btn = getById("menu-btn");
-    if (!menu.contains(e.target) && !btn.contains(e.target)) closeHeaderMenu();
+    if (!headerMenu.contains(e.target) && !menuBtn.contains(e.target)) closeHeaderMenu();
   });
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeHeaderMenu();
